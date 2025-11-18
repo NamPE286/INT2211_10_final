@@ -58,6 +58,7 @@
 	let columnFilters = $state<ColumnFiltersState>([]);
 	let columnVisibility = $state<VisibilityState>({});
 	let rowSelection = $state<RowSelectionState>({});
+	let selectedItems = $state<Map<string, OrderWithCustomer>>(new Map());
 	let showDeleteDialog = $state(false);
 	let showAssignDialog = $state(false);
 	let deleting = $state(false);
@@ -169,6 +170,21 @@
 			} else {
 				rowSelection = updater;
 			}
+			// Update selectedItems map
+			const newSelectedItems = new Map(selectedItems);
+			// Remove deselected items
+			for (const key of selectedItems.keys()) {
+				if (!rowSelection[key]) {
+					newSelectedItems.delete(key);
+				}
+			}
+			// Add newly selected items from current page
+			for (const row of table.getRowModel().rows) {
+				if (rowSelection[row.id]) {
+					newSelectedItems.set(row.id, row.original);
+				}
+			}
+			selectedItems = newSelectedItems;
 		},
 		state: {
 			get pagination() {
@@ -190,8 +206,7 @@
 	});
 
 	async function handleBulkDelete() {
-		const selectedRows = table.getFilteredSelectedRowModel().rows;
-		const orderNumbers = selectedRows.map((row) => row.original.orderNumber);
+		const orderNumbers = Array.from(selectedItems.values()).map((order) => order.orderNumber);
 
 		if (orderNumbers.length === 0) return;
 
@@ -208,6 +223,7 @@
 			const allSuccess = results.every((res) => res.ok);
 			if (allSuccess) {
 				rowSelection = {};
+				selectedItems = new Map();
 				showDeleteDialog = false;
 				toast.success(
 					`Successfully deleted ${orderNumbers.length} order${orderNumbers.length > 1 ? 's' : ''}`
@@ -264,8 +280,7 @@
 	}
 
 	async function handleAssignToCustomer() {
-		const selectedRows = table.getFilteredSelectedRowModel().rows;
-		const orderNumbers = selectedRows.map((row) => row.original.orderNumber);
+		const orderNumbers = Array.from(selectedItems.values()).map((order) => order.orderNumber);
 
 		if (orderNumbers.length === 0 || !newCustomerNumber) return;
 
@@ -288,6 +303,7 @@
 			const allSuccess = results.every((res) => res.ok);
 			if (allSuccess) {
 				rowSelection = {};
+				selectedItems = new Map();
 				showAssignDialog = false;
 				newCustomerNumber = '';
 				customerSearchQuery = '';
@@ -367,7 +383,7 @@
 					<Trash2 class="mr-2 size-4" />
 					Delete ({selectedCount})
 				</Button>
-				<Button variant="outline" onclick={() => (rowSelection = {})}>
+				<Button variant="outline" onclick={() => { rowSelection = {}; selectedItems = new Map(); }}>
 					Clear Selection
 				</Button>
 			{/if}
@@ -397,7 +413,7 @@
 					Order #{orderId}
 				</span>
 			{/each}
-			<Button variant="ghost" size="sm" onclick={() => (rowSelection = {})} class="ml-auto h-7">
+			<Button variant="ghost" size="sm" onclick={() => { rowSelection = {}; selectedItems = new Map(); }} class="ml-auto h-7">
 				Deselect All
 			</Button>
 		</div>

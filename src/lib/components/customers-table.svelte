@@ -58,6 +58,7 @@
 	let columnFilters = $state<ColumnFiltersState>([]);
 	let columnVisibility = $state<VisibilityState>({});
 	let rowSelection = $state<RowSelectionState>({});
+	let selectedItems = $state<Map<string, Customer>>(new Map());
 	let showDeleteDialog = $state(false);
 	let deleting = $state(false);
 
@@ -160,6 +161,21 @@
 			} else {
 				rowSelection = updater;
 			}
+			// Update selectedItems map
+			const newSelectedItems = new Map(selectedItems);
+			// Remove deselected items
+			for (const key of selectedItems.keys()) {
+				if (!rowSelection[key]) {
+					newSelectedItems.delete(key);
+				}
+			}
+			// Add newly selected items from current page
+			for (const row of table.getRowModel().rows) {
+				if (rowSelection[row.id]) {
+					newSelectedItems.set(row.id, row.original);
+				}
+			}
+			selectedItems = newSelectedItems;
 		},
 		state: {
 			get pagination() {
@@ -185,8 +201,7 @@
 	});
 
 	async function handleBulkDelete() {
-		const selectedRows = table.getFilteredSelectedRowModel().rows;
-		const customerNumbers = selectedRows.map((row) => row.original.customerNumber);
+		const customerNumbers = Array.from(selectedItems.values()).map((customer) => customer.customerNumber);
 
 		if (customerNumbers.length === 0) return;
 
@@ -203,6 +218,7 @@
 			const allSuccess = results.every((res) => res.ok);
 			if (allSuccess) {
 				rowSelection = {};
+				selectedItems = new Map();
 				showDeleteDialog = false;
 				await fetchCustomers();
 			} else {
@@ -261,9 +277,9 @@ const selectedCount = $derived(selectedIds.length);
 					<Trash2 class="mr-2 size-4" />
 					Delete ({selectedCount})
 				</Button>
-				<Button variant="outline" onclick={() => (rowSelection = {})}>
-					Clear Selection
-				</Button>
+			<Button variant="outline" onclick={() => { rowSelection = {}; selectedItems = new Map(); }}>
+				Clear Selection
+			</Button>
 			{/if}
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
@@ -292,7 +308,7 @@ const selectedCount = $derived(selectedIds.length);
 						#{customerId}
 					</span>
 				{/each}
-				<Button variant="ghost" size="sm" onclick={() => (rowSelection = {})} class="ml-auto h-7">
+				<Button variant="ghost" size="sm" onclick={() => { rowSelection = {}; selectedItems = new Map(); }} class="ml-auto h-7">
 					Deselect All
 				</Button>
 			</div>
