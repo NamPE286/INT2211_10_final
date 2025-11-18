@@ -22,6 +22,7 @@
 	import { columns } from './customers-columns.js';
 	import AddCustomerDialog from './add-customer-dialog.svelte';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 
 	let data = $state<Customer[]>([]);
 	let loading = $state(true);
@@ -272,7 +273,11 @@
 						</Table.Row>
 					{:else}
 						{#each table.getRowModel().rows as row (row.id)}
-							<Table.Row data-state={row.getIsSelected() && 'selected'}>
+							<Table.Row
+								data-state={row.getIsSelected() && 'selected'}
+								class="cursor-pointer"
+								onclick={() => goto(`/customers/${row.original.customerNumber}`)}
+							>
 								{#each row.getVisibleCells() as cell (cell.id)}
 									<Table.Cell>
 										<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
