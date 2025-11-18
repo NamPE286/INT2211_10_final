@@ -4,9 +4,12 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
+	import EditProductDialog from '$lib/components/edit-product-dialog.svelte';
+	import { Pencil } from 'lucide-svelte';
 
 	let { data }: { data: PageData } = $props();
 	let product = $state(data.product);
+	let showEditDialog = $state(false);
 
 	const stockStatus = $derived(
 		product.quantityInStock > 100
@@ -16,6 +19,14 @@
 				: { label: 'Out of Stock', variant: 'destructive' as const }
 	);
 
+	async function refreshProduct() {
+		const response = await fetch(`/api/products/${product.productCode}`);
+		if (response.ok) {
+			const result = await response.json();
+			product = result.data;
+		}
+	}
+
 	$effect(() => {
 		product = data.product;
 	});
@@ -24,7 +35,13 @@
 <div class="container mx-auto py-10">
 	<div class="mb-6 flex items-center justify-between">
 		<h1 class="text-3xl font-bold">{product.productName}</h1>
-		<Button variant="outline" onclick={() => window.history.back()}>Back</Button>
+		<div class="flex gap-2">
+			<Button variant="outline" onclick={() => (showEditDialog = true)}>
+				<Pencil class="mr-2 size-4" />
+				Edit
+			</Button>
+			<Button variant="outline" onclick={() => window.history.back()}>Back</Button>
+		</div>
 	</div>
 
 	<div class="grid gap-6 md:grid-cols-2">
@@ -111,3 +128,5 @@
 		</Card.Root>
 	</div>
 </div>
+
+<EditProductDialog {product} bind:open={showEditDialog} onSuccess={refreshProduct} />

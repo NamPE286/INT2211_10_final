@@ -70,14 +70,12 @@ export const POST: RequestHandler = async ({ request }) => {
 		await connection.beginTransaction();
 
 		try {
-			// Get the maximum orderNumber and increment it
 			const [maxResult] = await connection.query('SELECT MAX(orderNumber) as maxOrderNumber FROM orders');
 			const maxOrderNumber = Array.isArray(maxResult) && maxResult.length > 0 
 				? ((maxResult[0] as { maxOrderNumber: number | null }).maxOrderNumber || 0)
 				: 0;
 			const newOrderNumber = maxOrderNumber + 1;
 
-			// Insert order with explicit orderNumber
 			await connection.query(
 				'INSERT INTO orders (orderNumber, customerNumber, orderDate, requiredDate, shippedDate, status, comments) VALUES (?, ?, ?, ?, ?, ?, ?)',
 				[newOrderNumber, customerNumber, orderDate, requiredDate, shippedDate || null, status, comments || null]
