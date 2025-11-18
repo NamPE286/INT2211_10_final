@@ -11,7 +11,7 @@
 		try {
 			const res = await fetch('/api/customers');
 			const json = await res.json();
-			
+
 			if (res.ok) {
 				customers = json.data;
 			} else {
@@ -27,8 +27,8 @@
 </script>
 
 <div class="container mx-auto py-10">
-	<h1 class="text-3xl font-bold mb-6">Customers</h1>
-	
+	<h1 class="mb-6 text-3xl font-bold">Customers</h1>
+
 	{#if loading}
 		<p>Loading customers...</p>
 	{:else if error}
@@ -37,4 +37,3 @@
 		<CustomersTable data={customers} />
 	{/if}
 </div>
-
