@@ -32,7 +32,6 @@ export const GET: RequestHandler = async ({ url }) => {
             params.push(`%${filterValue}%`);
         }
 
-        // Validate sortBy column to prevent SQL injection
         const validSortBy = sortableColumns.includes(sortBy) ? sortBy : 'customerName';
         const validSortOrder = sortOrder.toLowerCase() === 'desc' ? 'DESC' : 'ASC';
         
@@ -51,6 +50,14 @@ export const GET: RequestHandler = async ({ url }) => {
 export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const body = await request.json();
+
+		if (!body.customerNumber) {
+			const [rows] = await connection.query(
+				'SELECT MAX(customerNumber) as maxNumber FROM customers'
+			);
+			const maxNumber = (rows as Array<{ maxNumber: number | null }>)[0]?.maxNumber || 0;
+			body.customerNumber = maxNumber + 1;
+		}
 
 		const [result] = await connection.query('INSERT INTO customers SET ?', [body]);
 

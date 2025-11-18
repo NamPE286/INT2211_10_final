@@ -20,6 +20,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import { columns } from './customers-columns.js';
+	import AddCustomerDialog from './add-customer-dialog.svelte';
 	import { onMount } from 'svelte';
 
 	let data = $state<Customer[]>([]);
@@ -212,6 +213,7 @@
 			class="max-w-sm"
 		/>
 		<Button onclick={applyFilter}>Filter</Button>
+		<AddCustomerDialog onSuccess={fetchCustomers} />
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}
