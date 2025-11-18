@@ -18,6 +18,7 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
+	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import { columns } from './customers-columns.js';
 	import { onMount } from 'svelte';
 
@@ -261,7 +262,11 @@
 				<Table.Body>
 					{#if loading}
 						<Table.Row>
-							<Table.Cell colspan={columns.length} class="h-24 text-center">Loading...</Table.Cell>
+							<Table.Cell colspan={columns.length} class="h-24 text-center">
+								<div class="flex items-center justify-center gap-2">
+									<Spinner class="size-5" />
+								</div>
+							</Table.Cell>
 						</Table.Row>
 					{:else}
 						{#each table.getRowModel().rows as row (row.id)}
