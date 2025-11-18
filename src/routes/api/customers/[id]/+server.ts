@@ -37,6 +37,15 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
 export const DELETE: RequestHandler = async ({ params }) => {
 	try {
+		await connection.query('DELETE FROM payments WHERE customerNumber = ?', [params.id]);
+
+		await connection.query(
+			'DELETE FROM orderdetails WHERE orderNumber IN (SELECT orderNumber FROM orders WHERE customerNumber = ?)',
+			[params.id]
+		);
+
+		await connection.query('DELETE FROM orders WHERE customerNumber = ?', [params.id]);
+
 		const [result] = await connection.query('DELETE FROM customers WHERE customerNumber = ?', [
 			params.id
 		]);
