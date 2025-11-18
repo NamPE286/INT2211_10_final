@@ -32,11 +32,11 @@
 			limit: params.limit.toString(),
 			offset: params.offset.toString()
 		});
-		
+
 		if (params.searchQuery && params.filterColumn) {
 			urlParams.append(params.filterColumn, params.searchQuery);
 		}
-		
+
 		if (params.sortBy && params.sortOrder) {
 			urlParams.append('sortBy', params.sortBy);
 			urlParams.append('sortOrder', params.sortOrder);
@@ -44,7 +44,9 @@
 
 		const [dataRes, countRes] = await Promise.all([
 			fetch(`/api/orders?${urlParams}`),
-			fetch(`/api/orders/count?${params.searchQuery && params.filterColumn ? `${params.filterColumn}=${params.searchQuery}` : ''}`)
+			fetch(
+				`/api/orders/count?${params.searchQuery && params.filterColumn ? `${params.filterColumn}=${params.searchQuery}` : ''}`
+			)
 		]);
 
 		const dataJson = await dataRes.json();
@@ -64,7 +66,7 @@
 
 	async function handleBulkDelete(items: OrderWithCustomer[]) {
 		const orderNumbers = items.map((order) => order.orderNumber);
-		
+
 		const results = await Promise.all(
 			orderNumbers.map((id) =>
 				fetch(`/api/orders/${id}`, {
@@ -119,15 +121,18 @@
 	getRowId={(row) => row.orderNumber.toString()}
 	onRowClick={handleRowClick}
 	onBulkDelete={handleBulkDelete}
-	deleteConfirmMessage={(count) => `This will permanently delete ${count} order${count > 1 ? 's' : ''} and all associated order details. This action cannot be undone.`}
+	deleteConfirmMessage={(count) =>
+		`This will permanently delete ${count} order${count > 1 ? 's' : ''} and all associated order details. This action cannot be undone.`}
 	selectedItemLabel={(id) => `Order #${id}`}
 	customCellClick={handleCellClick}
 >
 	{#snippet actionButtons({ selectedCount, selectedItems, clearSelection })}
-		<Button variant="outline" onclick={() => openAssignDialog(selectedCount, selectedItems)}>
-			<UserPlus class="mr-2 size-4" />
-			Assign ({selectedCount})
-		</Button>
+		{#if selectedCount > 0}
+			<Button variant="outline" onclick={() => openAssignDialog(selectedCount, selectedItems)}>
+				<UserPlus class="mr-2 size-4" />
+				Assign ({selectedCount})
+			</Button>
+		{/if}
 	{/snippet}
 </DataTableBase>
 

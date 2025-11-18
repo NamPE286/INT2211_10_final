@@ -106,10 +106,12 @@
 	selectedItemLabel={(id) => id}
 >
 	{#snippet actionButtons({ selectedCount, selectedItems, clearSelection })}
-		<Button variant="outline" onclick={() => openOrderDialog(selectedCount, selectedItems)}>
-			<ShoppingCart class="mr-2 size-4" />
-			Create Order ({selectedCount})
-		</Button>
+		{#if selectedCount > 0}
+			<Button variant="outline" onclick={() => openOrderDialog(selectedCount, selectedItems)}>
+				<ShoppingCart class="mr-2 size-4" />
+				Create Order ({selectedCount})
+			</Button>
+		{/if}
 	{/snippet}
 	{#snippet addButton()}
 		<AddProductDialog onSuccess={handleSuccess} />

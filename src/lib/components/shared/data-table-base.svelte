@@ -19,7 +19,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import { onMount } from 'svelte';
-	import { Trash2 } from 'lucide-svelte';
+	import { Trash2, X } from 'lucide-svelte';
 	import Search from '@lucide/svelte/icons/search';
 	import type { Snippet } from 'svelte';
 
@@ -47,10 +47,12 @@
 		onBulkDelete?: (items: TData[]) => Promise<void>;
 		deleteConfirmMessage?: (count: number) => string;
 		selectedItemLabel?: (id: string) => string;
-		actionButtons?: Snippet<[{ selectedCount: number; selectedItems: Map<string, TData>; clearSelection: () => void }]>;
+		actionButtons?: Snippet<
+			[{ selectedCount: number; selectedItems: Map<string, TData>; clearSelection: () => void }]
+		>;
 		addButton?: Snippet;
 		customCellClick?: (columnId: string, e: MouseEvent) => void;
-	}
+	};
 
 	type TData = $$Generic;
 	type TValue = $$Generic;
@@ -65,7 +67,8 @@
 		getRowId,
 		onRowClick,
 		onBulkDelete,
-		deleteConfirmMessage = (count: number) => `This will permanently delete ${count} item${count > 1 ? 's' : ''}. This action cannot be undone.`,
+		deleteConfirmMessage = (count: number) =>
+			`This will permanently delete ${count} item${count > 1 ? 's' : ''}. This action cannot be undone.`,
 		selectedItemLabel = (id: string) => `#${id}`,
 		actionButtons,
 		addButton,
@@ -298,11 +301,10 @@
 			{/if}
 			{#if selectedCount > 0 && onBulkDelete}
 				<Button variant="destructive" onclick={() => (showDeleteDialog = true)}>
-					<Trash2 class="mr-2 size-4" />
-					Delete ({selectedCount})
+					<Trash2 />
 				</Button>
 				<Button variant="outline" onclick={clearSelection}>
-					Clear Selection
+					<X />
 				</Button>
 			{/if}
 			<DropdownMenu.Root>
@@ -327,7 +329,9 @@
 			{/if}
 		</div>
 		{#if selectedCount > 0}
-			<div class="bg-muted/50 flex flex-wrap items-center gap-2 rounded-md border border-border border-dashed p-2 text-sm">
+			<div
+				class="bg-muted/50 border-border flex flex-wrap items-center gap-2 rounded-md border border-dashed p-2 text-sm"
+			>
 				<span class="font-medium">Selected ({selectedCount}):</span>
 				{#each selectedIds as id (id)}
 					<span class="bg-primary/10 text-primary rounded-md px-2 py-1">
