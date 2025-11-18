@@ -68,11 +68,11 @@
 
 <Dialog.Root bind:open>
 	<Dialog.Trigger>
-		<Button size="sm">
-			<Plus class="mr-2 size-4" />
+		<Button variant="outline">
+			<Plus />
 		</Button>
 	</Dialog.Trigger>
-	<Dialog.Content class="max-h-[90vh] overflow-y-auto border-border sm:max-w-[600px]">
+	<Dialog.Content class="border-border max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
 		<Dialog.Header>
 			<Dialog.Title>Add New Office</Dialog.Title>
 			<Dialog.Description>Enter the details for the new office.</Dialog.Description>
@@ -114,12 +114,7 @@
 				</div>
 				<div class="space-y-2">
 					<Label for="state">State</Label>
-					<Input
-						id="state"
-						bind:value={formData.state}
-						maxlength={50}
-						disabled={submitting}
-					/>
+					<Input id="state" bind:value={formData.state} maxlength={50} disabled={submitting} />
 				</div>
 			</div>
 
@@ -179,7 +174,12 @@
 			</div>
 
 			<Dialog.Footer>
-				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={submitting}>
+				<Button
+					type="button"
+					variant="outline"
+					onclick={() => (open = false)}
+					disabled={submitting}
+				>
 					Cancel
 				</Button>
 				<Button type="submit" disabled={submitting}>

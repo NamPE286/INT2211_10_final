@@ -76,12 +76,11 @@
 
 <Dialog.Root bind:open>
 	<Dialog.Trigger>
-		<Button size="sm">
-			<Plus class="mr-2 size-4" />
-			Add Payment
+		<Button variant="outline">
+			<Plus />
 		</Button>
 	</Dialog.Trigger>
-	<Dialog.Content class="max-h-[90vh] overflow-y-auto border-border sm:max-w-[600px]">
+	<Dialog.Content class="border-border max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
 		<Dialog.Header>
 			<Dialog.Title>Add New Payment</Dialog.Title>
 			<Dialog.Description>Enter the payment details.</Dialog.Description>
@@ -143,7 +142,12 @@
 			</div>
 
 			<Dialog.Footer>
-				<Button type="button" variant="outline" onclick={() => (open = false)} disabled={submitting}>
+				<Button
+					type="button"
+					variant="outline"
+					onclick={() => (open = false)}
+					disabled={submitting}
+				>
 					Cancel
 				</Button>
 				<Button type="submit" disabled={submitting}>

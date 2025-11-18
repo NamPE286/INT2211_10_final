@@ -41,7 +41,7 @@
 		try {
 			const response = await fetch('/api/products/productlines');
 			const result = await response.json();
-			
+
 			if (response.ok) {
 				productLines = result.data || [];
 			} else {
@@ -221,9 +221,7 @@
 								placeholder="Enter new product line"
 								class="flex-1"
 							/>
-							<Button type="button" size="sm" onclick={addNewProductLine}>
-								Add
-							</Button>
+							<Button type="button" size="sm" onclick={addNewProductLine}>Add</Button>
 							<Button
 								type="button"
 								size="sm"
