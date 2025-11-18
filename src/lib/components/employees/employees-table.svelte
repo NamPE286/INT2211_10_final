@@ -9,6 +9,7 @@
 
 	const filterableColumns = [
 		{ value: 'employeeNumber', label: 'No' },
+		{ value: 'fullName', label: 'Full Name' },
 		{ value: 'firstName', label: 'First Name' },
 		{ value: 'lastName', label: 'Last Name' },
 		{ value: 'email', label: 'Email' },

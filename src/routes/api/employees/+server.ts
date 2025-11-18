@@ -12,6 +12,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		const filterableColumns = [
 			'employeeNumber',
+			'fullName',
 			'firstName',
 			'lastName',
 			'email',
@@ -55,6 +56,8 @@ export const GET: RequestHandler = async ({ url }) => {
 		} else if (filterColumn && filterValue) {
 			if (filterColumn === 'city' || filterColumn === 'country') {
 				query += ` WHERE o.${filterColumn} LIKE '%${filterValue}%'`;
+			} else if (filterColumn === 'fullName') {
+				query += ` WHERE CONCAT(e.firstName, ' ', e.lastName) LIKE '%${filterValue}%'`;
 			} else {
 				query += ` WHERE e.${filterColumn} LIKE '%${filterValue}%'`;
 			}
