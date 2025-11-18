@@ -25,6 +25,7 @@
 	import { goto } from '$app/navigation';
 	import { Trash2 } from 'lucide-svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import Search from '@lucide/svelte/icons/search';
 
 	let data = $state<Customer[]>([]);
 	let loading = $state(true);
@@ -239,7 +240,7 @@
 			</Select.Content>
 		</Select.Root>
 		<Input
-			placeholder={`Filter by ${filterableColumns.find((c) => c.value === selectedFilterColumn)?.label.toLowerCase() || 'name'}...`}
+			placeholder={`Search by ${filterableColumns.find((c) => c.value === selectedFilterColumn)?.label.toLowerCase() || 'name'}...`}
 			value={searchQuery}
 			oninput={(e) => {
 				handleSearch(e.currentTarget.value);
@@ -251,7 +252,7 @@
 			}}
 			class="max-w-sm"
 		/>
-		<Button onclick={applyFilter}>Filter</Button>
+		<Button onclick={applyFilter}><Search /></Button>
 		{#if selectedCount > 0}
 			<Button variant="destructive" onclick={() => (showDeleteDialog = true)}>
 				<Trash2 class="mr-2 size-4" />
@@ -323,18 +324,22 @@
 								onclick={() => goto(`/customers/${row.original.customerNumber}`)}
 							>
 								{#each row.getVisibleCells() as cell (cell.id)}
-									<Table.Cell onclick={(e) => {
-										if (cell.column.id === 'select') {
-											e.stopPropagation();
-										}
-									}}>
+									<Table.Cell
+										onclick={(e) => {
+											if (cell.column.id === 'select') {
+												e.stopPropagation();
+											}
+										}}
+									>
 										<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
 									</Table.Cell>
 								{/each}
 							</Table.Row>
 						{:else}
 							<Table.Row>
-								<Table.Cell colspan={columns.length} class="h-24 text-center">No results.</Table.Cell>
+								<Table.Cell colspan={columns.length} class="h-24 text-center"
+									>No results.</Table.Cell
+								>
 							</Table.Row>
 						{/each}
 					{/if}
