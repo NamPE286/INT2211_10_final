@@ -1,7 +1,7 @@
 import { connection } from '$lib/db/connection';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import type { Customer, Order } from '$lib/types/customer';
+import type { Customer, Order, Payment } from '$lib/types/customer';
 
 export const load: PageServerLoad = async ({ params }) => {
 	try {
@@ -26,9 +26,17 @@ export const load: PageServerLoad = async ({ params }) => {
 			[params.customerNumber]
 		);
 
+		const [paymentRows] = await connection.query(
+			`SELECT * FROM payments 
+			 WHERE customerNumber = ? 
+			 ORDER BY paymentDate DESC`,
+			[params.customerNumber]
+		);
+
 		return {
 			customer: customerRows[0] as Customer,
-			recentOrders: (orderRows as Order[]) || []
+			recentOrders: (orderRows as Order[]) || [],
+			payments: (paymentRows as Payment[]) || []
 		};
 	} catch (err) {
 		console.error('Failed to fetch customer:', err);

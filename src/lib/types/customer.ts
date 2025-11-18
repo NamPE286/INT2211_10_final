@@ -24,3 +24,10 @@ export type Order = {
 	comments: string | null;
 	customerNumber: number;
 };
+
+export type Payment = {
+	customerNumber: number;
+	checkNumber: string;
+	paymentDate: string;
+	amount: string;
+};

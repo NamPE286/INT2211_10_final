@@ -13,6 +13,7 @@
 	let { data }: { data: PageData } = $props();
 	let customer = $state(data.customer);
 	let recentOrders = $state(data.recentOrders);
+	let payments = $state(data.payments);
 	let showEditDialog = $state(false);
 	let showDeleteDialog = $state(false);
 	let deleting = $state(false);
@@ -49,7 +50,12 @@
 	$effect(() => {
 		customer = data.customer;
 		recentOrders = data.recentOrders;
+		payments = data.payments;
 	});
+
+	function calculateTotalPayments() {
+		return payments.reduce((sum, payment) => sum + parseFloat(payment.amount), 0);
+	}
 </script>
 
 <svelte:head>
@@ -98,6 +104,15 @@
 				<div>
 					<div class="text-muted-foreground text-sm">Total Orders</div>
 					<div class="font-medium">{customer.orderCount || 0}</div>
+				</div>
+				<div>
+					<div class="text-muted-foreground text-sm">Total Payments</div>
+					<div class="font-medium">
+						{new Intl.NumberFormat('en-US', {
+							style: 'currency',
+							currency: 'USD'
+						}).format(calculateTotalPayments())}
+					</div>
 				</div>
 			</Card.Content>
 		</Card.Root>
@@ -214,6 +229,43 @@
 					</Table.Root>
 				{:else}
 					<p class="text-muted-foreground text-sm">No orders found.</p>
+				{/if}
+			</Card.Content>
+		</Card.Root>
+
+		<Card.Root class="border-border md:col-span-2">
+			<Card.Header>
+				<Card.Title>Payment History</Card.Title>
+			</Card.Header>
+			<Card.Content>
+				{#if payments.length > 0}
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Check Number</Table.Head>
+								<Table.Head>Payment Date</Table.Head>
+								<Table.Head class="text-right">Amount</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each payments as payment}
+								<Table.Row>
+									<Table.Cell class="font-medium">{payment.checkNumber}</Table.Cell>
+									<Table.Cell>
+										{new Date(payment.paymentDate).toLocaleDateString()}
+									</Table.Cell>
+									<Table.Cell class="text-right">
+										{new Intl.NumberFormat('en-US', {
+											style: 'currency',
+											currency: 'USD'
+										}).format(parseFloat(payment.amount))}
+									</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				{:else}
+					<p class="text-muted-foreground text-sm">No payments found.</p>
 				{/if}
 			</Card.Content>
 		</Card.Root>
