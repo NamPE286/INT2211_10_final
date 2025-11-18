@@ -31,9 +31,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		await connection.query(query, [
 			productLine,
-			textDescription || null,
-			htmlDescription || null,
-			image || null
+			textDescription,
+			htmlDescription,
+			image
 		]);
 
 		return json({ 
