@@ -6,8 +6,12 @@ export const GET: RequestHandler = async ({ url }) => {
     try {
         const limit = url.searchParams.get('limit') || '50';
         const offset = url.searchParams.get('offset') || '0';
+        const sortBy = url.searchParams.get('sortBy') || 'customerName';
+        const sortOrder = url.searchParams.get('sortOrder') || 'asc';
         
         const filterableColumns = ['customerNumber', 'customerName', 'contactFirstName', 'contactLastName', 'phone', 'city', 'state', 'country'];
+        const sortableColumns = ['customerNumber', 'customerName', 'contactFirstName', 'contactLastName', 'phone', 'city', 'state', 'country', 'creditLimit'];
+        
         let filterColumn: string | null = null;
         let filterValue: string | null = null;
         
@@ -28,7 +32,11 @@ export const GET: RequestHandler = async ({ url }) => {
             params.push(`%${filterValue}%`);
         }
 
-        query += ' ORDER BY customerName LIMIT ? OFFSET ?';
+        // Validate sortBy column to prevent SQL injection
+        const validSortBy = sortableColumns.includes(sortBy) ? sortBy : 'customerName';
+        const validSortOrder = sortOrder.toLowerCase() === 'desc' ? 'DESC' : 'ASC';
+        
+        query += ` ORDER BY ${validSortBy} ${validSortOrder} LIMIT ? OFFSET ?`;
         params.push(parseInt(limit), parseInt(offset));
 
         const [rows] = await connection.query(query, params);

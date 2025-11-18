@@ -4,6 +4,31 @@ import { renderComponent, renderSnippet } from "$lib/components/ui/data-table/in
 import { createRawSnippet } from "svelte";
 import CustomersCheckbox from "./customers-checkbox.svelte";
 
+const createSortableHeader = (label: string) => {
+	return ({ column }: any) => {
+		const headerSnippet = createRawSnippet<[{ column: any; label: string }]>(
+			(getProps) => {
+				const { column, label } = getProps();
+				const isSorted = column.getIsSorted();
+				const sortIcon = isSorted === 'asc' ? '<span class="ml-1">↑</span>' : isSorted === 'desc' ? '<span class="ml-1">↓</span>' : '';
+				const hoverIcon = isSorted ? '' : '<span class="ml-1 opacity-0 group-hover:opacity-50 transition-opacity">↕</span>';
+				return {
+					render: () => `
+						<button
+							class="flex items-center hover:text-foreground font-medium group w-full"
+							data-column-id="${column.id}"
+						>
+							${label}${sortIcon}${hoverIcon}
+						</button>
+					`,
+				};
+			}
+		);
+
+		return renderSnippet(headerSnippet, { column, label });
+	};
+};
+
 export const columns: ColumnDef<Customer>[] = [
 	{
 		id: "select",
@@ -27,35 +52,35 @@ export const columns: ColumnDef<Customer>[] = [
 	},
 	{
 		accessorKey: "customerNumber",
-		header: "No",
+		header: createSortableHeader("No"),
 	},
 	{
 		accessorKey: "customerName",
-		header: "Name",
+		header: createSortableHeader("Name"),
 	},
 	{
 		accessorKey: "contactFirstName",
-		header: "First Name",
+		header: createSortableHeader("First Name"),
 	},
 	{
 		accessorKey: "contactLastName",
-		header: "Last Name",
+		header: createSortableHeader("Last Name"),
 	},
 	{
 		accessorKey: "phone",
-		header: "Phone",
+		header: createSortableHeader("Phone"),
 	},
 	{
 		accessorKey: "city",
-		header: "City",
+		header: createSortableHeader("City"),
 	},
 	{
 		accessorKey: "state",
-		header: "State",
+		header: createSortableHeader("State"),
 	},
 	{
 		accessorKey: "country",
-		header: "Country",
+		header: createSortableHeader("Country"),
 	},
 	{
 		accessorKey: "creditLimit",
