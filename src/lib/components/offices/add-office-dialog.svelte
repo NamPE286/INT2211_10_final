@@ -70,7 +70,6 @@
 	<Dialog.Trigger>
 		<Button size="sm">
 			<Plus class="mr-2 size-4" />
-			Add Office
 		</Button>
 	</Dialog.Trigger>
 	<Dialog.Content class="max-h-[90vh] overflow-y-auto border-border sm:max-w-[600px]">
