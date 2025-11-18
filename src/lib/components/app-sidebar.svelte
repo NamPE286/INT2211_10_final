@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { Users, ShoppingCart, Moon, Sun, Home } from 'lucide-svelte';
+	import { Users, ShoppingCart, Moon, Sun, Home, Package } from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import { themeStore } from '$lib/stores/theme.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -15,6 +15,11 @@
 			title: 'Orders',
 			url: '/orders',
 			icon: ShoppingCart
+		},
+		{
+			title: 'Products',
+			url: '/products',
+			icon: Package
 		}
 	];
 </script>
