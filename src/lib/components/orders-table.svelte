@@ -404,7 +404,16 @@
 							<Table.Row
 								data-state={row.getIsSelected() && 'selected'}
 								class="cursor-pointer"
-								onclick={() => goto(`/orders/${row.original.orderNumber}`)}
+								onclick={(e) => {
+									const target = e.target as HTMLElement;
+									if (target.hasAttribute('data-customer-link')) {
+										e.stopPropagation();
+										const customerNumber = target.getAttribute('data-customer-link');
+										goto(`/customers/${customerNumber}`);
+									} else {
+										goto(`/orders/${row.original.orderNumber}`);
+									}
+								}}
 							>
 								{#each row.getVisibleCells() as cell (cell.id)}
 									<Table.Cell

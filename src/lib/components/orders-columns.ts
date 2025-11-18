@@ -137,9 +137,40 @@ export const columns: ColumnDef<OrderWithCustomer>[] = [
 	{
 		accessorKey: "customerName",
 		header: createSortableHeader("Customer"),
+		cell: ({ row }) => {
+			const customerNameCellSnippet = createRawSnippet<[{ name: string; number: number }]>(
+				(getData) => {
+					const { name, number } = getData();
+					return {
+						render: () => 
+							`<button type="button" class="text-primary hover:underline text-left" data-customer-link="${number}">${name}</button>`,
+					};
+				}
+			);
+
+			return renderSnippet(customerNameCellSnippet, {
+				name: row.original.customerName,
+				number: row.original.customerNumber
+			});
+		},
 	},
 	{
 		accessorKey: "customerNumber",
 		header: createSortableHeader("Customer #"),
+		cell: ({ row }) => {
+			const customerNumberCellSnippet = createRawSnippet<[{ number: number }]>(
+				(getData) => {
+					const { number } = getData();
+					return {
+						render: () => 
+							`<button type="button" class="text-primary hover:underline" data-customer-link="${number}">${number}</button>`,
+					};
+				}
+			);
+
+			return renderSnippet(customerNumberCellSnippet, {
+				number: row.original.customerNumber
+			});
+		},
 	},
 ];
