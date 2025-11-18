@@ -16,7 +16,7 @@ export const GET: RequestHandler = async ({ url }) => {
             params.push(`%${customerName}%`);
         }
 
-        query += ' LIMIT ? OFFSET ?';
+        query += ' ORDER BY customerName LIMIT ? OFFSET ?';
         params.push(parseInt(limit), parseInt(offset));
 
         const [rows] = await connection.query(query, params);
