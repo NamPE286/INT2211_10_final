@@ -7,8 +7,13 @@
 
 	const navItems = [
 		{
-			title: 'Customers',
+			title: 'Dashboard',
 			url: '/',
+			icon: Home
+		},
+		{
+			title: 'Customers',
+			url: '/customers',
 			icon: Users
 		},
 		{
