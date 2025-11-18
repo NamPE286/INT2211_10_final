@@ -39,11 +39,14 @@ export const columns: ColumnDef<Customer>[] = [
 	{
 		accessorKey: "customerName",
 		header: createSortableHeader("Customer Name"),
-		cell: ({ row }) => {
-			const firstName = row.original.contactFirstName;
-			const lastName = row.original.contactLastName;
-			return `${firstName} ${lastName}`;
-		},
+	},
+	{
+		accessorKey: "contactFirstName",
+		header: createSortableHeader("Contact First Name"),
+	},
+	{
+		accessorKey: "contactLastName",
+		header: createSortableHeader("Contact Last Name"),
 	},
 	{
 		accessorKey: "phone",

@@ -13,6 +13,7 @@
 	let { open = $bindable(false), onOpenChange, onSuccess }: Props = $props();
 
 	let formData = $state({
+		customerName: '',
 		contactFirstName: '',
 		contactLastName: '',
 		phone: '',
@@ -31,6 +32,7 @@
 
 	function resetForm() {
 		formData = {
+			customerName: '',
 			contactFirstName: '',
 			contactLastName: '',
 			phone: '',
@@ -52,7 +54,6 @@
 		error = null;
 
 		try {
-			const customerName = `${formData.contactFirstName} ${formData.contactLastName}`.trim();
 			const response = await fetch('/api/customers', {
 				method: 'POST',
 				headers: {
@@ -60,7 +61,6 @@
 				},
 				body: JSON.stringify({
 					...formData,
-					customerName,
 					salesRepEmployeeNumber: parseInt(formData.salesRepEmployeeNumber) || null,
 					creditLimit: formData.creditLimit || '0.00'
 				})
@@ -106,6 +106,16 @@
 				{#if error}
 					<div class="text-sm text-red-500">{error}</div>
 				{/if}
+
+				<div class="grid gap-2">
+					<Label for="customerName">Customer Name *</Label>
+					<Input
+						id="customerName"
+						bind:value={formData.customerName}
+						required
+						placeholder="ABC Company"
+					/>
+				</div>
 
 				<div class="grid grid-cols-2 gap-4">
 					<div class="grid gap-2">

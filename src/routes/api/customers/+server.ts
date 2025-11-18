@@ -10,13 +10,13 @@ export const GET: RequestHandler = async ({ url }) => {
         const sortOrder = url.searchParams.get('sortOrder') || 'asc';
         
         const filterableColumns = ['customerNumber', 'customerName', 'contactFirstName', 'contactLastName', 'phone', 'city', 'state', 'country'];
-        const sortableColumns = ['customerNumber', 'customerName', 'contactFirstName', 'contactLastName', 'phone', 'city', 'state', 'country', 'creditLimit'];
         
         let filterColumn: string | null = null;
         let filterValue: string | null = null;
         
         for (const column of filterableColumns) {
             const value = url.searchParams.get(column);
+            
             if (value) {
                 filterColumn = column;
                 filterValue = value;
@@ -25,20 +25,16 @@ export const GET: RequestHandler = async ({ url }) => {
         }
 
         let query = 'SELECT * FROM customers';
-        const params = [];
 
         if (filterColumn && filterValue) {
-            query += ` WHERE ${filterColumn} LIKE ?`;
-            params.push(`%${filterValue}%`);
+            query += ` WHERE ${filterColumn} LIKE '%${filterValue}%'`;
         }
-
-        const validSortBy = sortableColumns.includes(sortBy) ? sortBy : 'customerName';
-        const validSortOrder = sortOrder.toLowerCase() === 'desc' ? 'DESC' : 'ASC';
         
-        query += ` ORDER BY ${validSortBy} ${validSortOrder} LIMIT ? OFFSET ?`;
-        params.push(parseInt(limit), parseInt(offset));
+        query += ` ORDER BY ${sortBy} ${sortOrder} LIMIT ${limit} OFFSET ${offset}`;
 
-        const [rows] = await connection.query(query, params);
+        const [rows] = await connection.query(query);
+
+        console.log(query, rows)
 
         return json({ data: rows });
     } catch (err) {
