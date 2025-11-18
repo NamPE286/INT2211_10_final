@@ -21,12 +21,11 @@
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
 	import { columns } from "./customers-columns.js";
+	import { onMount } from "svelte";
 
-	type Props = {
-		data: Customer[];
-	};
-
-	let { data = [] }: Props = $props();
+	let data = $state<Customer[]>([]);
+	let loading = $state(true);
+	let error = $state<string | null>(null);
 
 	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	let sorting = $state<SortingState>([]);
@@ -96,8 +95,31 @@
 			},
 		},
 	});
+
+	onMount(async () => {
+		try {
+			const res = await fetch('/api/customers');
+			const json = await res.json();
+
+			if (res.ok) {
+				data = json.data;
+			} else {
+				error = json.error || 'Failed to fetch customers';
+			}
+		} catch (err) {
+			error = 'Failed to fetch customers';
+			console.error(err);
+		} finally {
+			loading = false;
+		}
+	});
 </script>
 
+{#if loading}
+	<p>Loading customers...</p>
+{:else if error}
+	<p class="text-red-500">{error}</p>
+{:else}
 <div>
 	<div class="flex items-center py-4">
 		<Input
@@ -196,3 +218,4 @@
 		</div>
 	</div>
 </div>
+{/if}
