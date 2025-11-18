@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { Users, ShoppingCart, Moon, Sun } from 'lucide-svelte';
+	import { Users, ShoppingCart, Moon, Sun, Home } from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import { themeStore } from '$lib/stores/theme.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -19,7 +19,7 @@
 	];
 </script>
 
-<Sidebar.Root class="border-border">
+<Sidebar.Root collapsible="icon" class="border-border">
 	<Sidebar.Content>
 		<Sidebar.Group>
 			<Sidebar.GroupLabel class="mb-4">
@@ -29,7 +29,10 @@
 				<Sidebar.Menu>
 					{#each navItems as item}
 						<Sidebar.MenuItem>
-							<Sidebar.MenuButton isActive={$page.url.pathname === item.url}>
+							<Sidebar.MenuButton
+								isActive={$page.url.pathname === item.url}
+								tooltipContent={item.title}
+							>
 								{#snippet child({ props })}
 									<a href={item.url} {...props}>
 										<svelte:component this={item.icon} />
@@ -47,15 +50,21 @@
 	<Sidebar.Footer>
 		<Sidebar.Menu>
 			<Sidebar.MenuItem>
-				<Button variant="ghost" class="w-full justify-start" onclick={() => themeStore.toggle()}>
-					{#if themeStore.value === 'dark'}
-						<Sun class="h-5 w-5" />
-						<span>Light Mode</span>
-					{:else}
-						<Moon class="h-5 w-5" />
-						<span>Dark Mode</span>
-					{/if}
-				</Button>
+				<Sidebar.MenuButton
+					tooltipContent={themeStore.value === 'dark' ? 'Light Mode' : 'Dark Mode'}
+				>
+					{#snippet child({ props })}
+						<button {...props} onclick={() => themeStore.toggle()}>
+							{#if themeStore.value === 'dark'}
+								<Sun class="h-5 w-5" />
+								<span>Light Mode</span>
+							{:else}
+								<Moon class="h-5 w-5" />
+								<span>Dark Mode</span>
+							{/if}
+						</button>
+					{/snippet}
+				</Sidebar.MenuButton>
 			</Sidebar.MenuItem>
 		</Sidebar.Menu>
 	</Sidebar.Footer>

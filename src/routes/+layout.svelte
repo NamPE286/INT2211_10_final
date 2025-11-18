@@ -32,5 +32,6 @@
 			{@render children()}
 		</main>
 	</Sidebar.Inset>
+	<Sidebar.Rail />
 </Sidebar.Provider>
 <Toaster />
