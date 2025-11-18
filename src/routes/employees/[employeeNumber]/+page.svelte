@@ -94,15 +94,58 @@
 					<div class="text-muted-foreground text-sm">Extension</div>
 					<div class="font-medium">{employee.extension}</div>
 				</div>
+			</Card.Content>
+		</Card.Root>
+
+		<Card.Root class="border-border">
+			<Card.Header>
+				<Card.Title>Management</Card.Title>
+			</Card.Header>
+			<Card.Content class="space-y-4">
 				{#if employee.managerName}
 					<div>
 						<div class="text-muted-foreground text-sm">Reports To</div>
-						<div class="font-medium">{employee.managerName}</div>
+						<a
+							href="/employees/{employee.managerId}"
+							class="font-medium text-primary hover:underline"
+						>
+							{employee.managerName}
+						</a>
+					</div>
+				{:else}
+					<div>
+						<div class="text-muted-foreground text-sm">Reports To</div>
+						<div class="font-medium text-muted-foreground">No manager assigned</div>
+					</div>
+				{/if}
+				{#if employee.reporters && employee.reporters.length > 0}
+					<div>
+						<div class="text-muted-foreground text-sm">Direct Reports ({employee.reporters.length})</div>
+						<div class="space-y-1">
+							{#each employee.reporters as reporter}
+								<div>
+									<a
+										href="/employees/{reporter.employeeNumber}"
+										class="text-primary hover:underline"
+									>
+										{reporter.firstName} {reporter.lastName}
+									</a>
+									<span class="text-muted-foreground text-sm"> - {reporter.jobTitle}</span>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{:else}
+					<div>
+						<div class="text-muted-foreground text-sm">Direct Reports</div>
+						<div class="font-medium text-muted-foreground">No direct reports</div>
 					</div>
 				{/if}
 			</Card.Content>
 		</Card.Root>
+	</div>
 
+	<div class="mt-6 grid gap-6 md:grid-cols-2">
 		<Card.Root class="border-border">
 			<Card.Header>
 				<Card.Title>Office Information</Card.Title>

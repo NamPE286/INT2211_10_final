@@ -30,4 +30,12 @@ export type Employee = {
 	territory?: string;
 	// Manager information
 	managerName?: string;
+	managerId?: number;
+	// Direct reports
+	reporters?: Array<{
+		employeeNumber: number;
+		firstName: string;
+		lastName: string;
+		jobTitle: string;
+	}>;
 };

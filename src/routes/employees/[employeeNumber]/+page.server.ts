@@ -16,7 +16,8 @@ export const load: PageServerLoad = async ({ params }) => {
 				o.country,
 				o.postalCode,
 				o.territory,
-				CONCAT(m.firstName, ' ', m.lastName) as managerName
+				CONCAT(m.firstName, ' ', m.lastName) as managerName,
+				m.employeeNumber as managerId
 			FROM employees e
 			LEFT JOIN offices o ON e.officeCode = o.officeCode
 			LEFT JOIN employees m ON e.reportsTo = m.employeeNumber
@@ -28,8 +29,16 @@ export const load: PageServerLoad = async ({ params }) => {
 			throw error(404, 'Employee not found');
 		}
 
+		// Get direct reports
+		const [reportersRows] = await connection.query(
+			`SELECT employeeNumber, firstName, lastName, jobTitle 
+			 FROM employees 
+			 WHERE reportsTo = ?`,
+			[params.employeeNumber]
+		);
+
 		return {
-			employee: rows[0] as Employee
+			employee: { ...rows[0], reporters: reportersRows } as Employee
 		};
 	} catch (err) {
 		console.error('Failed to fetch employee:', err);
