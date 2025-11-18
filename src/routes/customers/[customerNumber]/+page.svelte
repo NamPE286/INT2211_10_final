@@ -4,11 +4,14 @@
 	import type { PageData } from './$types';
 	import EditCustomerDialog from '$lib/components/edit-customer-dialog.svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Table from '$lib/components/ui/table/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Pencil, Trash2 } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 
 	let { data }: { data: PageData } = $props();
 	let customer = $state(data.customer);
+	let recentOrders = $state(data.recentOrders);
 	let showEditDialog = $state(false);
 	let showDeleteDialog = $state(false);
 	let deleting = $state(false);
@@ -40,6 +43,7 @@
 
 	$effect(() => {
 		customer = data.customer;
+		recentOrders = data.recentOrders;
 	});
 </script>
 
@@ -85,6 +89,10 @@
 							currency: 'USD'
 						}).format(parseFloat(customer.creditLimit))}
 					</div>
+				</div>
+				<div>
+					<div class="text-muted-foreground text-sm">Total Orders</div>
+					<div class="font-medium">{customer.orderCount || 0}</div>
 				</div>
 			</Card.Content>
 		</Card.Root>
@@ -147,6 +155,58 @@
 						<div class="font-medium">{customer.country}</div>
 					</div>
 				</div>
+			</Card.Content>
+		</Card.Root>
+
+		<Card.Root class="border-border md:col-span-2">
+			<Card.Header>
+				<Card.Title>Recent Orders</Card.Title>
+			</Card.Header>
+			<Card.Content>
+				{#if recentOrders.length > 0}
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Order #</Table.Head>
+								<Table.Head>Order Date</Table.Head>
+								<Table.Head>Required Date</Table.Head>
+								<Table.Head>Shipped Date</Table.Head>
+								<Table.Head>Status</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#each recentOrders as order}
+								<Table.Row>
+									<Table.Cell class="font-medium">{order.orderNumber}</Table.Cell>
+									<Table.Cell>
+										{new Date(order.orderDate).toLocaleDateString()}
+									</Table.Cell>
+									<Table.Cell>
+										{new Date(order.requiredDate).toLocaleDateString()}
+									</Table.Cell>
+									<Table.Cell>
+										{order.shippedDate
+											? new Date(order.shippedDate).toLocaleDateString()
+											: '-'}
+									</Table.Cell>
+									<Table.Cell>
+										<Badge
+											variant={order.status === 'Shipped'
+												? 'default'
+												: order.status === 'Cancelled'
+													? 'destructive'
+													: 'secondary'}
+										>
+											{order.status}
+										</Badge>
+									</Table.Cell>
+								</Table.Row>
+							{/each}
+						</Table.Body>
+					</Table.Root>
+				{:else}
+					<p class="text-muted-foreground text-sm">No orders found.</p>
+				{/if}
 			</Card.Content>
 		</Card.Root>
 	</div>

@@ -24,13 +24,17 @@ export const GET: RequestHandler = async ({ url }) => {
             }
         }
 
-        let query = 'SELECT * FROM customers';
+        let query = `
+            SELECT c.*, COUNT(o.orderNumber) as orderCount 
+            FROM customers c 
+            LEFT JOIN orders o ON c.customerNumber = o.customerNumber
+        `;
 
         if (filterColumn && filterValue) {
-            query += ` WHERE ${filterColumn} LIKE '%${filterValue}%'`;
+            query += ` WHERE c.${filterColumn} LIKE '%${filterValue}%'`;
         }
         
-        query += ` ORDER BY ${sortBy} ${sortOrder} LIMIT ${limit} OFFSET ${offset}`;
+        query += ` GROUP BY c.customerNumber ORDER BY ${sortBy} ${sortOrder} LIMIT ${limit} OFFSET ${offset}`;
 
         const [rows] = await connection.query(query);
 

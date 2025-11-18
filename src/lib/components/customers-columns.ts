@@ -84,13 +84,37 @@ export const columns: ColumnDef<Customer>[] = [
 					const formatted = formatter.format(parseFloat(creditLimit));
 					return {
 						render: () =>
-							`<div class="text-right font-medium">${formatted}</div>`,
+				`<div class="text-right font-medium">${formatted}</div>`,
+			};
+		}
+	);
+
+	return renderSnippet(creditLimitCellSnippet, {
+		creditLimit: row.original.creditLimit,
+	});
+},
+	},
+	{
+		accessorKey: "orderCount",
+		header: () => {
+			const orderCountHeaderSnippet = createRawSnippet(() => ({
+				render: () => `<div class="text-right">Orders</div>`,
+			}));
+			return renderSnippet(orderCountHeaderSnippet);
+		},
+		cell: ({ row }) => {
+			const orderCountCellSnippet = createRawSnippet<[{ count: number }]>(
+				(getCount) => {
+					const { count } = getCount();
+					return {
+						render: () =>
+							`<div class="text-right font-medium">${count || 0}</div>`,
 					};
 				}
 			);
 
-			return renderSnippet(creditLimitCellSnippet, {
-				creditLimit: row.original.creditLimit,
+			return renderSnippet(orderCountCellSnippet, {
+				count: row.original.orderCount || 0,
 			});
 		},
 	},
