@@ -3,29 +3,11 @@ import type { Customer } from "$lib/types/customer";
 import { renderComponent, renderSnippet } from "$lib/components/ui/data-table/index.js";
 import { createRawSnippet } from "svelte";
 import CustomersCheckbox from "./customers-checkbox.svelte";
+import SortableHeader from "./sortable-header.svelte";
 
 const createSortableHeader = (label: string) => {
 	return ({ column }: any) => {
-		const headerSnippet = createRawSnippet<[{ column: any; label: string }]>(
-			(getProps) => {
-				const { column, label } = getProps();
-				const isSorted = column.getIsSorted();
-				const sortIcon = isSorted === 'asc' ? '<span class="ml-1">↑</span>' : isSorted === 'desc' ? '<span class="ml-1">↓</span>' : '';
-				const hoverIcon = isSorted ? '' : '<span class="ml-1 opacity-0 group-hover:opacity-50 transition-opacity">↕</span>';
-				return {
-					render: () => `
-						<button
-							class="flex items-center hover:text-foreground font-medium group w-full"
-							data-column-id="${column.id}"
-						>
-							${label}${sortIcon}${hoverIcon}
-						</button>
-					`,
-				};
-			}
-		);
-
-		return renderSnippet(headerSnippet, { column, label });
+		return renderComponent(SortableHeader, { column, label });
 	};
 };
 
