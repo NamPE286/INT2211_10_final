@@ -4,9 +4,12 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
-	import { Plus } from 'lucide-svelte';
+	import * as Command from '$lib/components/ui/command/index.js';
+	import * as Popover from '$lib/components/ui/popover/index.js';
+	import { Plus, Check, ChevronsUpDown } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { onMount } from 'svelte';
+	import { cn } from '$lib/utils.js';
 	import type { Office } from '$lib/types/employee';
 
 	interface Props {
@@ -31,6 +34,17 @@
 	let employees = $state<any[]>([]);
 	let loading = $state(false);
 	let error = $state<string | null>(null);
+	let employeeSearchOpen = $state(false);
+	let employeeSearchValue = $state('');
+
+	let filteredEmployees = $derived(
+		employees.filter((emp) => {
+			const searchLower = employeeSearchValue.toLowerCase();
+			const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
+			const jobTitle = emp.jobTitle?.toLowerCase() || '';
+			return fullName.includes(searchLower) || jobTitle.includes(searchLower);
+		})
+	);
 
 	onMount(async () => {
 		try {
@@ -195,23 +209,62 @@
 
 				<div class="grid gap-2">
 					<Label for="reportsTo">Reports To</Label>
-					<Select.Root type="single" bind:value={formData.reportsTo}>
-						<Select.Trigger>
+					<Popover.Root bind:open={employeeSearchOpen}>
+						<Popover.Trigger
+							class="w-full justify-between inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+						>
 							{#if formData.reportsTo}
-								{employees.find(e => e.employeeNumber.toString() === formData.reportsTo)?.firstName || ''} {employees.find(e => e.employeeNumber.toString() === formData.reportsTo)?.lastName || ''}
+								{(() => {
+									const emp = employees.find(e => e.employeeNumber.toString() === formData.reportsTo);
+									return emp ? `${emp.firstName} ${emp.lastName} - ${emp.jobTitle}` : 'Select manager';
+								})()}
 							{:else}
 								Select manager (optional)
 							{/if}
-						</Select.Trigger>
-						<Select.Content class="border-border">
-							<Select.Item value="" label="None">None</Select.Item>
-							{#each employees as employee}
-								<Select.Item value={employee.employeeNumber.toString()} label="{employee.firstName} {employee.lastName} - {employee.jobTitle}">
-									{employee.firstName} {employee.lastName} - {employee.jobTitle}
-								</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
+							<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+						</Popover.Trigger>
+						<Popover.Content class="w-[400px] p-0">
+							<Command.Root>
+								<Command.Input placeholder="Search employees..." bind:value={employeeSearchValue} />
+								<Command.Empty>No employee found.</Command.Empty>
+								<Command.List class="max-h-[300px] overflow-y-auto">
+									<Command.Group>
+										<Command.Item
+											onSelect={() => {
+												formData.reportsTo = '';
+												employeeSearchOpen = false;
+											}}
+										>
+											<Check
+												class={cn(
+													'mr-2 h-4 w-4',
+													formData.reportsTo === '' ? 'opacity-100' : 'opacity-0'
+												)}
+											/>
+											None
+										</Command.Item>
+										{#each filteredEmployees as employee}
+											<Command.Item
+												value={employee.employeeNumber.toString()}
+												onSelect={() => {
+													formData.reportsTo = employee.employeeNumber.toString();
+													employeeSearchOpen = false;
+												}}
+											>
+												<Check
+													class={cn(
+														'mr-2 h-4 w-4',
+														formData.reportsTo === employee.employeeNumber.toString() ? 'opacity-100' : 'opacity-0'
+													)}
+												/>
+												{employee.firstName} {employee.lastName} - {employee.jobTitle}
+											</Command.Item>
+										{/each}
+									</Command.Group>
+								</Command.List>
+							</Command.Root>
+						</Popover.Content>
+					</Popover.Root>
 				</div>
 			</div>
 			<Dialog.Footer>
