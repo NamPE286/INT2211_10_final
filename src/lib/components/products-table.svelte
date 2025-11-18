@@ -401,6 +401,9 @@
 						{productCode}
 					</span>
 				{/each}
+				<Button variant="ghost" size="sm" onclick={() => (rowSelection = {})} class="ml-auto h-7">
+					Deselect All
+				</Button>
 			</div>
 		{/if}
 	</div>

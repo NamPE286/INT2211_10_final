@@ -390,13 +390,16 @@
 		</DropdownMenu.Root>
 	</div>
 	{#if selectedCount > 0}
-		<div class="bg-muted/50 flex flex-wrap items-center gap-2 rounded-md border border-dashed p-2 text-sm">
+		<div class="bg-muted/50 flex flex-wrap items-center gap-2 rounded-md border border-border border-dashed p-2 text-sm">
 			<span class="font-medium">Selected ({selectedCount}):</span>
 			{#each selectedIds as orderId (orderId)}
 				<span class="bg-primary/10 text-primary rounded-md px-2 py-1">
 					Order #{orderId}
 				</span>
 			{/each}
+			<Button variant="ghost" size="sm" onclick={() => (rowSelection = {})} class="ml-auto h-7">
+				Deselect All
+			</Button>
 		</div>
 	{/if}
 </div>
