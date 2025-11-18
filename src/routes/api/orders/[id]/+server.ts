@@ -37,3 +37,34 @@ export const GET: RequestHandler = async ({ params }) => {
 		return json({ success: false, error: 'Failed to fetch order' }, { status: 500 });
 	}
 };
+
+export const PUT: RequestHandler = async ({ params, request }) => {
+	try {
+		const body = await request.json();
+
+		const [result] = await connection.query('UPDATE orders SET ? WHERE orderNumber = ?', [
+			body,
+			params.id
+		]);
+
+		return json({ data: result });
+	} catch (err) {
+		console.error(err);
+		return json({ error: 'Failed to update order' }, { status: 500 });
+	}
+};
+
+export const DELETE: RequestHandler = async ({ params }) => {
+	try {
+		await connection.query('DELETE FROM orderdetails WHERE orderNumber = ?', [params.id]);
+
+		const [result] = await connection.query('DELETE FROM orders WHERE orderNumber = ?', [
+			params.id
+		]);
+
+		return json({ data: result });
+	} catch (err) {
+		console.error(err);
+		return json({ error: 'Failed to delete order' }, { status: 500 });
+	}
+};

@@ -5,10 +5,16 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
+	import EditOrderDialog from '$lib/components/edit-order-dialog.svelte';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import { Pencil, Trash2 } from 'lucide-svelte';
 
 	let { data }: { data: PageData } = $props();
 	let order = $state(data.order);
 	let orderDetails = $state(data.orderDetails);
+	let showEditDialog = $state(false);
+	let showDeleteDialog = $state(false);
+	let deleting = $state(false);
 
 	const total = $derived(
 		orderDetails.reduce(
@@ -16,6 +22,32 @@
 			0
 		)
 	);
+
+	async function refreshOrder() {
+		const response = await fetch(`/api/orders/${order.orderNumber}`);
+		if (response.ok) {
+			const result = await response.json();
+			order = result.data.order;
+			orderDetails = result.data.details;
+		}
+	}
+
+	async function handleDelete() {
+		deleting = true;
+		try {
+			const response = await fetch(`/api/orders/${order.orderNumber}`, {
+				method: 'DELETE'
+			});
+
+			if (response.ok) {
+				goto('/');
+			}
+		} catch (err) {
+			console.error(err);
+		} finally {
+			deleting = false;
+		}
+	}
 
 	$effect(() => {
 		order = data.order;
@@ -26,7 +58,17 @@
 <div class="container mx-auto py-10">
 	<div class="mb-6 flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Order #{order.orderNumber}</h1>
-		<Button variant="outline" onclick={() => window.history.back()}>Back</Button>
+		<div class="flex gap-2">
+			<Button variant="outline" onclick={() => (showEditDialog = true)}>
+				<Pencil class="mr-2 size-4" />
+				Edit
+			</Button>
+			<Button variant="destructive" onclick={() => (showDeleteDialog = true)}>
+				<Trash2 class="mr-2 size-4" />
+				Delete
+			</Button>
+			<Button variant="outline" onclick={() => window.history.back()}>Back</Button>
+		</div>
 	</div>
 
 	<div class="grid gap-6 md:grid-cols-2">
@@ -164,3 +206,22 @@
 		</Card.Root>
 	</div>
 </div>
+
+<EditOrderDialog {order} bind:open={showEditDialog} onSuccess={refreshOrder} />
+
+<AlertDialog.Root bind:open={showDeleteDialog}>
+	<AlertDialog.Content class="border-border">
+		<AlertDialog.Header>
+			<AlertDialog.Title>Are you sure?</AlertDialog.Title>
+			<AlertDialog.Description>
+				This will permanently delete order #{order.orderNumber}. This action cannot be undone.
+			</AlertDialog.Description>
+		</AlertDialog.Header>
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel disabled={deleting}>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action onclick={handleDelete} disabled={deleting}>
+				{deleting ? 'Deleting...' : 'Delete'}
+			</AlertDialog.Action>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>
