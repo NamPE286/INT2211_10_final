@@ -4,15 +4,15 @@
 	import { Moon, Sun } from 'lucide-svelte';
 </script>
 
-<nav>
-	<div class="container mx-auto px-4 py-3 flex items-center justify-between">
+<nav class="bg-background border-border sticky top-0 z-50 border">
+	<div class="container mx-auto flex items-center justify-between px-4 py-3">
 		<div class="flex items-center gap-8">
 			<a href="/" class="text-xl font-bold">INT2211</a>
-			<div class="hidden md:flex items-center gap-6">
-				<a href="/" class="text-sm hover:text-primary transition-colors">Customers</a>
+			<div class="hidden items-center gap-6 md:flex">
+				<a href="/" class="hover:text-primary text-sm transition-colors">Customers</a>
 			</div>
 		</div>
-		
+
 		<div class="flex items-center gap-4">
 			<Button
 				variant="ghost"
