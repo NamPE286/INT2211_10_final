@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/table-core";
 import { renderComponent, renderSnippet } from "$lib/components/ui/data-table/index.js";
 import { createRawSnippet } from "svelte";
 import SortableHeader from "./sortable-header.svelte";
+import OrdersCheckbox from "./orders-checkbox.svelte";
 
 const createSortableHeader = (label: string) => {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,6 +23,26 @@ export type OrderWithCustomer = {
 };
 
 export const columns: ColumnDef<OrderWithCustomer>[] = [
+	{
+		id: "select",
+		header: ({ table }) =>
+			renderComponent(OrdersCheckbox, {
+				checked: table.getIsAllPageRowsSelected(),
+				indeterminate:
+					table.getIsSomePageRowsSelected() &&
+					!table.getIsAllPageRowsSelected(),
+				onCheckedChange: (value: boolean) => table.toggleAllPageRowsSelected(!!value),
+				"aria-label": "Select all",
+			}),
+		cell: ({ row }) =>
+			renderComponent(OrdersCheckbox, {
+				checked: row.getIsSelected(),
+				onCheckedChange: (value: boolean) => row.toggleSelected(!!value),
+				"aria-label": "Select row",
+			}),
+		enableSorting: false,
+		enableHiding: false,
+	},
 	{
 		accessorKey: "orderNumber",
 		header: createSortableHeader("Order #"),
