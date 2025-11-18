@@ -9,7 +9,7 @@
 		<div class="flex items-center gap-8">
 			<a href="/" class="text-xl font-bold">INT2211</a>
 			<div class="hidden md:flex items-center gap-6">
-				<a href="/" class="text-sm hover:text-primary transition-colors">Home</a>
+				<a href="/" class="text-sm hover:text-primary transition-colors">Customers</a>
 			</div>
 		</div>
 		
