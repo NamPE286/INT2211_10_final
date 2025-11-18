@@ -124,6 +124,7 @@
 			return data;
 		},
 		columns,
+		getRowId: (row) => row.orderNumber.toString(),
 		getCoreRowModel: getCoreRowModel(),
 		manualPagination: true,
 		manualSorting: true,
@@ -319,52 +320,56 @@
 </script>
 
 <div>
-	<div class="flex items-center gap-2 py-4">
-		<Select.Root
-			type="single"
-			bind:value={selectedFilterColumn}
-			onValueChange={() => {
-				if (searchQuery) {
-					pagination.pageIndex = 0;
-					fetchOrders();
-				}
-			}}
-		>
-			<Select.Trigger class="w-40">
-				{selectedColumnLabel}
-			</Select.Trigger>
-			<Select.Content class="border-border">
-				{#each filterableColumns as column (column.value)}
-					<Select.Item value={column.value} label={column.label}>
-						{column.label}
-					</Select.Item>
-				{/each}
-			</Select.Content>
-		</Select.Root>
-		<Input
-			placeholder={`Search by ${filterableColumns.find((c) => c.value === selectedFilterColumn)?.label.toLowerCase() || 'customer name'}...`}
-			value={searchQuery}
-			oninput={(e) => {
-				handleSearch(e.currentTarget.value);
-			}}
-			onkeydown={(e) => {
-				if (e.key === 'Enter') {
-					applyFilter();
-				}
-			}}
-			class="max-w-sm"
-		/>
-		<Button onclick={applyFilter}><Search /></Button>
-		{#if selectedCount > 0}
-			<Button variant="outline" onclick={() => (showAssignDialog = true)}>
-				<UserPlus class="mr-2 size-4" />
-				Assign ({selectedCount})
-			</Button>
-			<Button variant="destructive" onclick={() => (showDeleteDialog = true)}>
-				<Trash2 class="mr-2 size-4" />
-				Delete ({selectedCount})
-			</Button>
-		{/if}
+	<div class="flex flex-col gap-2 py-4">
+		<div class="flex items-center gap-2">
+			<Select.Root
+				type="single"
+				bind:value={selectedFilterColumn}
+				onValueChange={() => {
+					if (searchQuery) {
+						pagination.pageIndex = 0;
+						fetchOrders();
+					}
+				}}
+			>
+				<Select.Trigger class="w-40">
+					{selectedColumnLabel}
+				</Select.Trigger>
+				<Select.Content class="border-border">
+					{#each filterableColumns as column (column.value)}
+						<Select.Item value={column.value} label={column.label}>
+							{column.label}
+						</Select.Item>
+					{/each}
+				</Select.Content>
+			</Select.Root>
+			<Input
+				placeholder={`Search by ${filterableColumns.find((c) => c.value === selectedFilterColumn)?.label.toLowerCase() || 'customer name'}...`}
+				value={searchQuery}
+				oninput={(e) => {
+					handleSearch(e.currentTarget.value);
+				}}
+				onkeydown={(e) => {
+					if (e.key === 'Enter') {
+						applyFilter();
+					}
+				}}
+				class="max-w-sm"
+			/>
+			<Button onclick={applyFilter}><Search /></Button>
+			{#if selectedCount > 0}
+				<Button variant="outline" onclick={() => (showAssignDialog = true)}>
+					<UserPlus class="mr-2 size-4" />
+					Assign ({selectedCount})
+				</Button>
+				<Button variant="destructive" onclick={() => (showDeleteDialog = true)}>
+					<Trash2 class="mr-2 size-4" />
+					Delete ({selectedCount})
+				</Button>
+				<Button variant="outline" onclick={() => (rowSelection = {})}>
+					Clear Selection
+				</Button>
+			{/if}
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}
@@ -383,9 +388,20 @@
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
 	</div>
-	<div class="border-border rounded-md border">
-		<Table.Root>
-			<Table.Header>
+	{#if selectedCount > 0}
+		<div class="bg-muted/50 flex flex-wrap items-center gap-2 rounded-md border border-border border-dashed p-2 text-sm">
+			<span class="font-medium">Selected ({selectedCount}):</span>
+			{#each Object.keys(rowSelection) as orderId (orderId)}
+				<span class="bg-primary/10 text-primary rounded-md px-2 py-1">
+					Order #{orderId}
+				</span>
+			{/each}
+		</div>
+	{/if}
+</div>
+<div class="border-border rounded-md border">
+	<Table.Root>
+		<Table.Header>
 				{#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
 					<Table.Row>
 						{#each headerGroup.headers as header (header.id)}

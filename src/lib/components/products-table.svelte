@@ -156,6 +156,7 @@
 			return data;
 		},
 		columns,
+		getRowId: (row) => row.productCode,
 		getCoreRowModel: getCoreRowModel(),
 		manualPagination: true,
 		manualSorting: true,
@@ -320,55 +321,59 @@
 </script>
 
 <div>
-	<div class="flex items-center gap-2 py-4">
-		<Select.Root
-			type="single"
-			bind:value={selectedFilterColumn}
-			onValueChange={() => {
-				if (searchQuery) {
-					pagination.pageIndex = 0;
-					fetchProducts();
-				}
-			}}
-		>
-			<Select.Trigger class="w-40">
-				{selectedColumnLabel}
-			</Select.Trigger>
-			<Select.Content class="border-border">
-				{#each filterableColumns as column (column.value)}
-					<Select.Item value={column.value} label={column.label}>
-						{column.label}
-					</Select.Item>
-				{/each}
-			</Select.Content>
-		</Select.Root>
-		<Input
-			placeholder={`Search by ${filterableColumns.find((c) => c.value === selectedFilterColumn)?.label.toLowerCase() || 'product name'}...`}
-			value={searchQuery}
-			oninput={(e) => {
-				handleSearch(e.currentTarget.value);
-			}}
-			onkeydown={(e) => {
-				if (e.key === 'Enter') {
-					applyFilter();
-				}
-			}}
-			class="max-w-sm"
-		/>
-		<Button onclick={applyFilter}><Search /></Button>
-		{#if selectedCount > 0}
-			<Button variant="outline" onclick={() => (showOrderDialog = true)}>
-				<ShoppingCart class="mr-2 size-4" />
-				Create Order ({selectedCount})
-			</Button>
-			<Button variant="destructive" onclick={() => (showDeleteDialog = true)}>
-				<Trash2 class="mr-2 size-4" />
-				Delete ({selectedCount})
+	<div class="flex flex-col gap-2 py-4">
+		<div class="flex items-center gap-2">
+			<Select.Root
+				type="single"
+				bind:value={selectedFilterColumn}
+				onValueChange={() => {
+					if (searchQuery) {
+						pagination.pageIndex = 0;
+						fetchProducts();
+					}
+				}}
+			>
+				<Select.Trigger class="w-40">
+					{selectedColumnLabel}
+				</Select.Trigger>
+				<Select.Content class="border-border">
+					{#each filterableColumns as column (column.value)}
+						<Select.Item value={column.value} label={column.label}>
+							{column.label}
+						</Select.Item>
+					{/each}
+				</Select.Content>
+			</Select.Root>
+			<Input
+				placeholder={`Search by ${filterableColumns.find((c) => c.value === selectedFilterColumn)?.label.toLowerCase() || 'product name'}...`}
+				value={searchQuery}
+				oninput={(e) => {
+					handleSearch(e.currentTarget.value);
+				}}
+				onkeydown={(e) => {
+					if (e.key === 'Enter') {
+						applyFilter();
+					}
+				}}
+				class="max-w-sm"
+			/>
+			<Button onclick={applyFilter}><Search /></Button>
+			{#if selectedCount > 0}
+				<Button variant="outline" onclick={() => (showOrderDialog = true)}>
+					<ShoppingCart class="mr-2 size-4" />
+					Create Order ({selectedCount})
+				</Button>
+				<Button variant="destructive" onclick={() => (showDeleteDialog = true)}>
+					<Trash2 class="mr-2 size-4" />
+					Delete ({selectedCount})
+				</Button>
+			<Button variant="outline" onclick={() => (rowSelection = {})}>
+				Clear Selection
 			</Button>
 		{/if}
-		<div class="ml-auto flex gap-2">
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger>
+			<div class="ml-auto flex gap-2">
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
 					{#snippet child({ props })}
 						<Button {...props} variant="outline">Columns</Button>
 					{/snippet}
@@ -386,6 +391,17 @@
 			</DropdownMenu.Root>
 			<AddProductDialog onSuccess={fetchProducts} />
 		</div>
+		</div>
+		{#if selectedCount > 0}
+			<div class="bg-muted/50 flex flex-wrap items-center gap-2 rounded-md border border-border border-dashed p-2 text-sm">
+				<span class="font-medium">Selected ({selectedCount}):</span>
+				{#each Object.keys(rowSelection) as productCode (productCode)}
+					<span class="bg-primary/10 text-primary rounded-md px-2 py-1">
+						{productCode}
+					</span>
+				{/each}
+			</div>
+		{/if}
 	</div>
 	<div class="border-border rounded-md border">
 		<Table.Root>
