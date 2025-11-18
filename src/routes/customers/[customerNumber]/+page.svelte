@@ -2,15 +2,61 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import type { PageData } from './$types';
+	import EditCustomerDialog from '$lib/components/edit-customer-dialog.svelte';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import { Pencil, Trash2 } from 'lucide-svelte';
+	import { goto } from '$app/navigation';
 
 	let { data }: { data: PageData } = $props();
-	let customer = $derived(data.customer);
+	let customer = $state(data.customer);
+	let showEditDialog = $state(false);
+	let showDeleteDialog = $state(false);
+	let deleting = $state(false);
+
+	async function refreshCustomer() {
+		const response = await fetch(`/api/customers/${customer.customerNumber}`);
+		if (response.ok) {
+			const result = await response.json();
+			customer = result.data;
+		}
+	}
+
+	async function handleDelete() {
+		deleting = true;
+		try {
+			const response = await fetch(`/api/customers/${customer.customerNumber}`, {
+				method: 'DELETE'
+			});
+
+			if (response.ok) {
+				goto('/');
+			}
+		} catch (err) {
+			console.error(err);
+		} finally {
+			deleting = false;
+		}
+	}
+
+	$effect(() => {
+		customer = data.customer;
+	});
 </script>
 
 <div class="container mx-auto py-10">
 	<div class="mb-6 flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Customer Details</h1>
-		<Button variant="outline" onclick={() => window.history.back()}>Back</Button>
+		<div class="flex gap-2">
+			<Button variant="outline" onclick={() => (showEditDialog = true)}>
+				<Pencil class="mr-2 size-4" />
+				Edit
+			</Button>
+			<Button variant="destructive" onclick={() => (showDeleteDialog = true)}>
+				<Trash2 class="mr-2 size-4" />
+				Delete
+			</Button>
+			<Button variant="outline" onclick={() => window.history.back()}>Back</Button>
+		</div>
 	</div>
 
 	<div class="grid gap-6 md:grid-cols-2">
@@ -101,3 +147,23 @@
 			</Card.Root>
 		</div>
 </div>
+
+<EditCustomerDialog {customer} bind:open={showEditDialog} onSuccess={refreshCustomer} />
+
+<AlertDialog.Root bind:open={showDeleteDialog}>
+	<AlertDialog.Content>
+		<AlertDialog.Header>
+			<AlertDialog.Title>Are you sure?</AlertDialog.Title>
+			<AlertDialog.Description>
+				This will permanently delete customer {customer.customerName}. This action cannot be
+				undone.
+			</AlertDialog.Description>
+		</AlertDialog.Header>
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel disabled={deleting}>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action onclick={handleDelete} disabled={deleting}>
+				{deleting ? 'Deleting...' : 'Delete'}
+			</AlertDialog.Action>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>

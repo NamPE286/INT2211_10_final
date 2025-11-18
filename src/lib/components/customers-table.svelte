@@ -23,6 +23,8 @@
 	import AddCustomerDialog from './add-customer-dialog.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { Trash2 } from 'lucide-svelte';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
 	let data = $state<Customer[]>([]);
 	let loading = $state(true);
@@ -53,6 +55,8 @@
 	let columnFilters = $state<ColumnFiltersState>([]);
 	let columnVisibility = $state<VisibilityState>({});
 	let rowSelection = $state<RowSelectionState>({});
+	let showDeleteDialog = $state(false);
+	let deleting = $state(false);
 
 	async function fetchCustomers() {
 		loading = true;
@@ -175,6 +179,40 @@
 	onMount(() => {
 		fetchCustomers();
 	});
+
+	async function handleBulkDelete() {
+		const selectedRows = table.getFilteredSelectedRowModel().rows;
+		const customerNumbers = selectedRows.map((row) => row.original.customerNumber);
+
+		if (customerNumbers.length === 0) return;
+
+		deleting = true;
+		try {
+			const results = await Promise.all(
+				customerNumbers.map((id) =>
+					fetch(`/api/customers/${id}`, {
+						method: 'DELETE'
+					})
+				)
+			);
+
+			const allSuccess = results.every((res) => res.ok);
+			if (allSuccess) {
+				rowSelection = {};
+				showDeleteDialog = false;
+				await fetchCustomers();
+			} else {
+				error = 'Some customers could not be deleted';
+			}
+		} catch (err) {
+			error = 'Failed to delete customers';
+			console.error(err);
+		} finally {
+			deleting = false;
+		}
+	}
+
+	const selectedCount = $derived(table.getFilteredSelectedRowModel().rows.length);
 </script>
 
 <div>
@@ -214,6 +252,12 @@
 			class="max-w-sm"
 		/>
 		<Button onclick={applyFilter}>Filter</Button>
+		{#if selectedCount > 0}
+			<Button variant="destructive" onclick={() => (showDeleteDialog = true)}>
+				<Trash2 class="mr-2 size-4" />
+				Delete ({selectedCount})
+			</Button>
+		{/if}
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}
@@ -279,7 +323,11 @@
 								onclick={() => goto(`/customers/${row.original.customerNumber}`)}
 							>
 								{#each row.getVisibleCells() as cell (cell.id)}
-									<Table.Cell>
+									<Table.Cell onclick={(e) => {
+										if (cell.column.id === 'select') {
+											e.stopPropagation();
+										}
+									}}>
 										<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
 									</Table.Cell>
 								{/each}
@@ -319,3 +367,21 @@
 		</div>
 	{/if}
 </div>
+
+<AlertDialog.Root bind:open={showDeleteDialog}>
+	<AlertDialog.Content>
+		<AlertDialog.Header>
+			<AlertDialog.Title>Are you sure?</AlertDialog.Title>
+			<AlertDialog.Description>
+				This will permanently delete {selectedCount} customer{selectedCount > 1 ? 's' : ''}. This
+				action cannot be undone.
+			</AlertDialog.Description>
+		</AlertDialog.Header>
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel disabled={deleting}>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action onclick={handleBulkDelete} disabled={deleting}>
+				{deleting ? 'Deleting...' : 'Delete'}
+			</AlertDialog.Action>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>
