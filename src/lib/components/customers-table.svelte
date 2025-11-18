@@ -233,7 +233,7 @@
 			<Select.Trigger class="w-40">
 				{selectedColumnLabel}
 			</Select.Trigger>
-			<Select.Content>
+			<Select.Content class="border-border">
 				{#each filterableColumns as column (column.value)}
 					<Select.Item value={column.value} label={column.label}>
 						{column.label}
@@ -267,7 +267,7 @@
 					<Button {...props} variant="outline" class="ml-auto">Columns</Button>
 				{/snippet}
 			</DropdownMenu.Trigger>
-			<DropdownMenu.Content align="end">
+			<DropdownMenu.Content align="end" class="border-border">
 				{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column.id)}
 					<DropdownMenu.CheckboxItem
 						class="capitalize"
@@ -369,7 +369,7 @@
 						<Select.Trigger class="w-20">
 							{pagination.pageSize}
 						</Select.Trigger>
-						<Select.Content>
+						<Select.Content class="border-border">
 							{#each pageSizeOptions as size (size)}
 								<Select.Item value={size.toString()} label={size.toString()}>
 									{size}

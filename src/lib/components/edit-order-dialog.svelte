@@ -147,7 +147,7 @@
 						<Select.Trigger>
 							{formData.status}
 						</Select.Trigger>
-						<Select.Content>
+						<Select.Content class="border-border">
 							{#each statuses as status}
 								<Select.Item value={status.value} label={status.label}>
 									{status.label}
