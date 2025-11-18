@@ -8,6 +8,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		const offset = url.searchParams.get('offset') || '0';
 		const sortBy = url.searchParams.get('sortBy') || 'lastName';
 		const sortOrder = url.searchParams.get('sortOrder') || 'asc';
+		const search = url.searchParams.get('search');
 
 		const filterableColumns = [
 			'employeeNumber',
@@ -49,7 +50,9 @@ export const GET: RequestHandler = async ({ url }) => {
             LEFT JOIN employees m ON e.reportsTo = m.employeeNumber
         `;
 
-		if (filterColumn && filterValue) {
+		if (search) {
+			query += ` WHERE CONCAT(e.firstName, ' ', e.lastName) LIKE '%${search}%'`;
+		} else if (filterColumn && filterValue) {
 			if (filterColumn === 'city' || filterColumn === 'country') {
 				query += ` WHERE o.${filterColumn} LIKE '%${filterValue}%'`;
 			} else {

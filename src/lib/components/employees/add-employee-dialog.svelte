@@ -4,7 +4,6 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
-	import * as Command from '$lib/components/ui/command/index.js';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { Plus, Check, ChevronsUpDown } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
@@ -36,30 +35,51 @@
 	let error = $state<string | null>(null);
 	let employeeSearchOpen = $state(false);
 	let employeeSearchValue = $state('');
+	let searchLoading = $state(false);
+	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+	const LIMIT = 50;
 
-	let filteredEmployees = $derived(
-		employees.filter((emp) => {
-			const searchLower = employeeSearchValue.toLowerCase();
-			const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
-			const jobTitle = emp.jobTitle?.toLowerCase() || '';
-			return fullName.includes(searchLower) || jobTitle.includes(searchLower);
-		})
-	);
+	let filteredEmployees = $derived(employees);
+
+	async function fetchEmployees(search: string = '') {
+		if (searchTimeout) {
+			clearTimeout(searchTimeout);
+		}
+
+		searchTimeout = setTimeout(async () => {
+			searchLoading = true;
+			try {
+				const url = new URL('/api/employees', window.location.origin);
+				url.searchParams.set('limit', LIMIT.toString());
+				if (search) {
+					url.searchParams.set('search', search);
+				}
+				const response = await fetch(url);
+				const data = await response.json();
+				employees = data.data;
+			} catch (err) {
+				console.error('Failed to fetch employees:', err);
+			} finally {
+				searchLoading = false;
+			}
+		}, 300);
+	}
 
 	onMount(async () => {
 		try {
-			const [officesRes, employeesRes] = await Promise.all([
-				fetch('/api/offices'),
-				fetch('/api/employees')
-			]);
-
+			const officesRes = await fetch('/api/offices');
 			const officesData = await officesRes.json();
-			const employeesData = await employeesRes.json();
-
 			offices = officesData.data;
-			employees = employeesData.data;
+
+			await fetchEmployees();
 		} catch (err) {
 			console.error('Failed to load form data:', err);
+		}
+	});
+
+	$effect(() => {
+		if (employeeSearchOpen) {
+			fetchEmployees(employeeSearchValue);
 		}
 	});
 
@@ -126,7 +146,7 @@
 
 <Dialog.Root bind:open onOpenChange={handleOpenChange}>
 	<Dialog.Trigger>
-		<Button variant='outline'><Plus /></Button>
+		<Button variant="outline"><Plus /></Button>
 	</Dialog.Trigger>
 	<Dialog.Content class="border-border max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
 		<Dialog.Header>
@@ -142,21 +162,11 @@
 				<div class="grid grid-cols-2 gap-4">
 					<div class="grid gap-2">
 						<Label for="firstName">First Name *</Label>
-						<Input
-							id="firstName"
-							bind:value={formData.firstName}
-							required
-							placeholder="John"
-						/>
+						<Input id="firstName" bind:value={formData.firstName} required placeholder="John" />
 					</div>
 					<div class="grid gap-2">
 						<Label for="lastName">Last Name *</Label>
-						<Input
-							id="lastName"
-							bind:value={formData.lastName}
-							required
-							placeholder="Doe"
-						/>
+						<Input id="lastName" bind:value={formData.lastName} required placeholder="Doe" />
 					</div>
 				</div>
 
@@ -173,29 +183,19 @@
 
 				<div class="grid gap-2">
 					<Label for="jobTitle">Job Title *</Label>
-					<Input
-						id="jobTitle"
-						bind:value={formData.jobTitle}
-						required
-						placeholder="Sales Rep"
-					/>
+					<Input id="jobTitle" bind:value={formData.jobTitle} required placeholder="Sales Rep" />
 				</div>
 
 				<div class="grid gap-2">
 					<Label for="extension">Extension *</Label>
-					<Input
-						id="extension"
-						bind:value={formData.extension}
-						required
-						placeholder="x1234"
-					/>
+					<Input id="extension" bind:value={formData.extension} required placeholder="x1234" />
 				</div>
 
 				<div class="grid gap-2">
 					<Label for="officeCode">Office *</Label>
 					<Select.Root type="single" bind:value={formData.officeCode}>
 						<Select.Trigger>
-							{offices.find(o => o.officeCode === formData.officeCode)?.city || 'Select office'}
+							{offices.find((o) => o.officeCode === formData.officeCode)?.city || 'Select office'}
 						</Select.Trigger>
 						<Select.Content class="border-border">
 							{#each offices as office}
@@ -211,26 +211,41 @@
 					<Label for="reportsTo">Reports To</Label>
 					<Popover.Root bind:open={employeeSearchOpen}>
 						<Popover.Trigger
-							class="w-full justify-between inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+							class="ring-offset-background focus-visible:ring-ring border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
 						>
 							{#if formData.reportsTo}
 								{(() => {
-									const emp = employees.find(e => e.employeeNumber.toString() === formData.reportsTo);
-									return emp ? `${emp.firstName} ${emp.lastName} - ${emp.jobTitle}` : 'Select manager';
+									const emp = employees.find(
+										(e) => e.employeeNumber.toString() === formData.reportsTo
+									);
+									return emp
+										? `${emp.firstName} ${emp.lastName} - ${emp.jobTitle}`
+										: 'Select manager';
 								})()}
 							{:else}
 								Select manager (optional)
 							{/if}
 							<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 						</Popover.Trigger>
-						<Popover.Content class="w-[400px] p-0">
-							<Command.Root>
-								<Command.Input placeholder="Search employees..." bind:value={employeeSearchValue} />
-								<Command.Empty>No employee found.</Command.Empty>
-								<Command.List class="max-h-[300px] overflow-y-auto">
-									<Command.Group>
-										<Command.Item
-											onSelect={() => {
+						<Popover.Content class="w-[400px] p-0 border-border">
+							<div class="flex flex-col">
+								<div class="p-2 border-none">
+									<Input
+										class="h-9"
+										placeholder="Search employees..."
+										bind:value={employeeSearchValue}
+									/>
+								</div>
+								<div class="max-h-[300px] overflow-y-auto p-1">
+									{#if searchLoading}
+										<div class="py-6 text-center text-sm text-muted-foreground">Searching...</div>
+									{:else if filteredEmployees.length === 0}
+										<div class="py-6 text-center text-sm text-muted-foreground">No employee found.</div>
+									{:else}
+										<button
+											type="button"
+											class="w-full flex items-center px-2 py-1.5 text-sm rounded-sm hover:bg-accent cursor-pointer"
+											onclick={() => {
 												formData.reportsTo = '';
 												employeeSearchOpen = false;
 											}}
@@ -242,11 +257,12 @@
 												)}
 											/>
 											None
-										</Command.Item>
+										</button>
 										{#each filteredEmployees as employee}
-											<Command.Item
-												value={employee.employeeNumber.toString()}
-												onSelect={() => {
+											<button
+												type="button"
+												class="w-full flex items-center px-2 py-1.5 text-sm rounded-sm hover:bg-accent cursor-pointer"
+												onclick={() => {
 													formData.reportsTo = employee.employeeNumber.toString();
 													employeeSearchOpen = false;
 												}}
@@ -254,15 +270,17 @@
 												<Check
 													class={cn(
 														'mr-2 h-4 w-4',
-														formData.reportsTo === employee.employeeNumber.toString() ? 'opacity-100' : 'opacity-0'
+														formData.reportsTo === employee.employeeNumber.toString()
+															? 'opacity-100'
+															: 'opacity-0'
 													)}
 												/>
 												{employee.firstName} {employee.lastName} - {employee.jobTitle}
-											</Command.Item>
+											</button>
 										{/each}
-									</Command.Group>
-								</Command.List>
-							</Command.Root>
+									{/if}
+								</div>
+							</div>
 						</Popover.Content>
 					</Popover.Root>
 				</div>

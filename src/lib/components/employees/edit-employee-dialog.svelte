@@ -4,7 +4,6 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
-	import * as Command from '$lib/components/ui/command/index.js';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { Check, ChevronsUpDown } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
@@ -37,30 +36,51 @@
 	let error = $state<string | null>(null);
 	let employeeSearchOpen = $state(false);
 	let employeeSearchValue = $state('');
+	let searchLoading = $state(false);
+	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+	const LIMIT = 50;
 
-	let filteredEmployees = $derived(
-		employees.filter((emp) => {
-			const searchLower = employeeSearchValue.toLowerCase();
-			const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
-			const jobTitle = emp.jobTitle?.toLowerCase() || '';
-			return fullName.includes(searchLower) || jobTitle.includes(searchLower);
-		})
-	);
+	let filteredEmployees = $derived(employees);
+
+	async function fetchEmployees(search: string = '') {
+		if (searchTimeout) {
+			clearTimeout(searchTimeout);
+		}
+
+		searchTimeout = setTimeout(async () => {
+			searchLoading = true;
+			try {
+				const url = new URL('/api/employees', window.location.origin);
+				url.searchParams.set('limit', LIMIT.toString());
+				if (search) {
+					url.searchParams.set('search', search);
+				}
+				const response = await fetch(url);
+				const data = await response.json();
+				employees = data.data.filter((e: any) => e.employeeNumber !== employee.employeeNumber);
+			} catch (err) {
+				console.error('Failed to fetch employees:', err);
+			} finally {
+				searchLoading = false;
+			}
+		}, 300);
+	}
 
 	onMount(async () => {
 		try {
-			const [officesRes, employeesRes] = await Promise.all([
-				fetch('/api/offices'),
-				fetch('/api/employees')
-			]);
-
+			const officesRes = await fetch('/api/offices');
 			const officesData = await officesRes.json();
-			const employeesData = await employeesRes.json();
-
 			offices = officesData.data;
-			employees = employeesData.data.filter((e: any) => e.employeeNumber !== employee.employeeNumber);
+			
+			await fetchEmployees();
 		} catch (err) {
 			console.error('Failed to load form data:', err);
+		}
+	});
+
+	$effect(() => {
+		if (employeeSearchOpen) {
+			fetchEmployees(employeeSearchValue);
 		}
 	});
 
@@ -225,13 +245,24 @@
 							<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 						</Popover.Trigger>
 						<Popover.Content class="w-[400px] p-0 border-border">
-							<Command.Root>
-								<Command.Input class='border-none focus-visible:ring-0 focus-visible:ring-offset-0' placeholder="Search employees..." bind:value={employeeSearchValue} />
-								<Command.Empty>No employee found.</Command.Empty>
-								<Command.List class="max-h-[300px] overflow-y-auto">
-									<Command.Group>
-										<Command.Item
-											onSelect={() => {
+							<div class="flex flex-col">
+								<div class="p-2 border-none">
+									<Input
+										class="h-9"
+										placeholder="Search employees..."
+										bind:value={employeeSearchValue}
+									/>
+								</div>
+								<div class="max-h-[300px] overflow-y-auto p-1 border-none">
+									{#if searchLoading}
+										<div class="py-6 text-center text-sm text-muted-foreground">Searching...</div>
+									{:else if filteredEmployees.length === 0}
+										<div class="py-6 text-center text-sm text-muted-foreground">No employee found.</div>
+									{:else}
+										<button
+											type="button"
+											class="w-full flex items-center px-2 py-1.5 text-sm rounded-sm hover:bg-accent cursor-pointer"
+											onclick={() => {
 												formData.reportsTo = '';
 												employeeSearchOpen = false;
 											}}
@@ -243,11 +274,12 @@
 												)}
 											/>
 											None
-										</Command.Item>
+										</button>
 										{#each filteredEmployees as emp}
-											<Command.Item
-												value={emp.employeeNumber.toString()}
-												onSelect={() => {
+											<button
+												type="button"
+												class="w-full flex items-center px-2 py-1.5 text-sm rounded-sm hover:bg-accent cursor-pointer"
+												onclick={() => {
 													formData.reportsTo = emp.employeeNumber.toString();
 													employeeSearchOpen = false;
 												}}
@@ -259,11 +291,11 @@
 													)}
 												/>
 												{emp.firstName} {emp.lastName} - {emp.jobTitle}
-											</Command.Item>
+											</button>
 										{/each}
-									</Command.Group>
-								</Command.List>
-							</Command.Root>
+									{/if}
+								</div>
+							</div>
 						</Popover.Content>
 					</Popover.Root>
 				</div>
