@@ -26,12 +26,61 @@
 	let data = $state<Customer[]>([]);
 	let loading = $state(true);
 	let error = $state<string | null>(null);
+	let totalCount = $state(0);
+	let pageCount = $state(0);
+	let searchQuery = $state("");
+	let debounceTimer: ReturnType<typeof setTimeout>;
 
-	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
+	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 15 });
 	let sorting = $state<SortingState>([]);
 	let columnFilters = $state<ColumnFiltersState>([]);
 	let columnVisibility = $state<VisibilityState>({});
 	let rowSelection = $state<RowSelectionState>({});
+
+	async function fetchCustomers() {
+		loading = true;
+		error = null;
+		try {
+			const offset = pagination.pageIndex * pagination.pageSize;
+			const params = new URLSearchParams({
+				limit: pagination.pageSize.toString(),
+				offset: offset.toString(),
+			});
+			if (searchQuery) {
+				params.append('customerName', searchQuery);
+			}
+			
+			const [dataRes, countRes] = await Promise.all([
+				fetch(`/api/customers?${params}`),
+				fetch(`/api/customers/count?${searchQuery ? `customerName=${searchQuery}` : ''}`)
+			]);
+			
+			const dataJson = await dataRes.json();
+			const countJson = await countRes.json();
+
+			if (dataRes.ok && countRes.ok) {
+				data = dataJson.data;
+				totalCount = countJson.total;
+				pageCount = Math.ceil(totalCount / pagination.pageSize);
+			} else {
+				error = dataJson.error || countJson.error || 'Failed to fetch customers';
+			}
+		} catch (err) {
+			error = 'Failed to fetch customers';
+			console.error(err);
+		} finally {
+			loading = false;
+		}
+	}
+
+	function handleSearch(value: string) {
+		searchQuery = value;
+		clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => {
+			pagination.pageIndex = 0;
+			fetchCustomers();
+		}, 300);
+	}
 
 	const table = createSvelteTable({
 		get data() {
@@ -39,7 +88,10 @@
 		},
 		columns,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
+		manualPagination: true,
+		get pageCount() {
+			return pageCount;
+		},
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		onPaginationChange: (updater) => {
@@ -48,6 +100,7 @@
 			} else {
 				pagination = updater;
 			}
+			fetchCustomers();
 		},
 		onSortingChange: (updater) => {
 			if (typeof updater === "function") {
@@ -96,27 +149,13 @@
 		},
 	});
 
-	onMount(async () => {
-		try {
-			const res = await fetch('/api/customers');
-			const json = await res.json();
-
-			if (res.ok) {
-				data = json.data;
-			} else {
-				error = json.error || 'Failed to fetch customers';
-			}
-		} catch (err) {
-			error = 'Failed to fetch customers';
-			console.error(err);
-		} finally {
-			loading = false;
-		}
+	onMount(() => {
+		fetchCustomers();
 	});
 </script>
 
 {#if loading}
-	<p>Loading customers...</p>
+	<p>Loading...</p>
 {:else if error}
 	<p class="text-red-500">{error}</p>
 {:else}
@@ -124,12 +163,9 @@
 	<div class="flex items-center py-4">
 		<Input
 			placeholder="Filter by name..."
-			value={(table.getColumn("customerName")?.getFilterValue() as string) ?? ""}
-			onchange={(e) => {
-				table.getColumn("customerName")?.setFilterValue(e.currentTarget.value);
-			}}
+			value={searchQuery}
 			oninput={(e) => {
-				table.getColumn("customerName")?.setFilterValue(e.currentTarget.value);
+				handleSearch(e.currentTarget.value);
 			}}
 			class="max-w-sm"
 		/>
