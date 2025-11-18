@@ -346,7 +346,10 @@
 				{table.getFilteredSelectedRowModel().rows.length} of{' '}
 				{table.getFilteredRowModel().rows.length} row(s) selected.
 			</div>
-			<div class="flex space-x-2">
+			<div class="flex items-center space-x-2">
+				<div class="text-muted-foreground text-sm">
+					Page {pagination.pageIndex + 1} of {pageCount || 1}
+				</div>
 				<Button
 					variant="outline"
 					size="sm"
