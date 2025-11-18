@@ -2,7 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import type { PageData } from './$types';
-	import EditCustomerDialog from '$lib/components/edit-customer-dialog.svelte';
+	import EditCustomerDialog from '$lib/components/customers/edit-customer-dialog.svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';

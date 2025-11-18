@@ -4,7 +4,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
-	import EditProductDialog from '$lib/components/edit-product-dialog.svelte';
+	import EditProductDialog from '$lib/components/products/edit-product-dialog.svelte';
 	import { Pencil } from 'lucide-svelte';
 
 	let { data }: { data: PageData } = $props();

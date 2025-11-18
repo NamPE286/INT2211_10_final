@@ -3,7 +3,7 @@ import type { Customer } from "$lib/types/customer";
 import { renderComponent, renderSnippet } from "$lib/components/ui/data-table/index.js";
 import { createRawSnippet } from "svelte";
 import CustomersCheckbox from "./customers-checkbox.svelte";
-import SortableHeader from "./sortable-header.svelte";
+import SortableHeader from "../shared/sortable-header.svelte";
 
 const createSortableHeader = (label: string) => {
 	return ({ column }: any) => {

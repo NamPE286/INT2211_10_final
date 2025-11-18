@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Product } from './products-columns.js';
-	import DataTableBase from './data-table-base.svelte';
+	import DataTableBase from '../shared/data-table-base.svelte';
 	import { columns } from './products-columns.js';
 	import AddProductDialog from './add-product-dialog.svelte';
-	import CreateOrderDialog from './create-order-dialog.svelte';
+	import CreateOrderDialog from '../orders/create-order-dialog.svelte';
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { ShoppingCart } from 'lucide-svelte';

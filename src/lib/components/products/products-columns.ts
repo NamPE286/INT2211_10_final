@@ -1,11 +1,10 @@
 import type { ColumnDef } from "@tanstack/table-core";
 import { renderComponent, renderSnippet } from "$lib/components/ui/data-table/index.js";
 import { createRawSnippet } from "svelte";
-import SortableHeader from "./sortable-header.svelte";
+import SortableHeader from "../shared/sortable-header.svelte";
 import ProductsCheckbox from "./products-checkbox.svelte";
 
 const createSortableHeader = (label: string) => {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return ({ column }: { column: any }) => {
 		return renderComponent(SortableHeader, { column, label });
 	};

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Product } from './products-columns.js';
+	import type { Product } from '../products/products-columns.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';

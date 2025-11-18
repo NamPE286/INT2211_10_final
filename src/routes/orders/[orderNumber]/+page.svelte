@@ -5,7 +5,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
-	import EditOrderDialog from '$lib/components/edit-order-dialog.svelte';
+	import EditOrderDialog from '$lib/components/orders/edit-order-dialog.svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { Pencil, Trash2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';

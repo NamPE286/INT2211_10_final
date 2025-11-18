@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Customer } from '$lib/types/customer';
-	import DataTableBase from './data-table-base.svelte';
+	import DataTableBase from '../shared/data-table-base.svelte';
 	import { columns } from './customers-columns.js';
 	import AddCustomerDialog from './add-customer-dialog.svelte';
 	import { goto } from '$app/navigation';

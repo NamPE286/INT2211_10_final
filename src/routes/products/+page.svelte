@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ProductsTable from '$lib/components/products-table.svelte';
+	import ProductsTable from '$lib/components/products/products-table.svelte';
 </script>
 
 <svelte:head>

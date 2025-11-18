@@ -6,7 +6,7 @@
 	import { themeStore } from '$lib/stores/theme.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import AppSidebar from '$lib/components/app-sidebar.svelte';
+	import AppSidebar from '$lib/components/layout/app-sidebar.svelte';
 
 	let { children } = $props();
 

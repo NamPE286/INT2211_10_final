@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { OrderWithCustomer } from './orders-columns.js';
-	import DataTableBase from './data-table-base.svelte';
+	import DataTableBase from '../shared/data-table-base.svelte';
 	import { columns } from './orders-columns.js';
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button/index.js';

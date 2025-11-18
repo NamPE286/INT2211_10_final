@@ -6,7 +6,7 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { toast } from 'svelte-sonner';
-	import type { OrderWithCustomer } from '../../routes/orders/[orderNumber]/+page.server';
+	import type { OrderWithCustomer } from './orders-columns';
 
 	interface Props {
 		order: OrderWithCustomer;
@@ -29,9 +29,7 @@
 	let formData = $state({
 		orderDate: new Date(order.orderDate).toISOString().split('T')[0],
 		requiredDate: new Date(order.requiredDate).toISOString().split('T')[0],
-		shippedDate: order.shippedDate
-			? new Date(order.shippedDate).toISOString().split('T')[0]
-			: '',
+		shippedDate: order.shippedDate ? new Date(order.shippedDate).toISOString().split('T')[0] : '',
 		status: order.status,
 		comments: order.comments || ''
 	});
@@ -43,9 +41,7 @@
 		formData = {
 			orderDate: new Date(order.orderDate).toISOString().split('T')[0],
 			requiredDate: new Date(order.requiredDate).toISOString().split('T')[0],
-			shippedDate: order.shippedDate
-				? new Date(order.shippedDate).toISOString().split('T')[0]
-				: '',
+			shippedDate: order.shippedDate ? new Date(order.shippedDate).toISOString().split('T')[0] : '',
 			status: order.status,
 			comments: order.comments || ''
 		};
@@ -105,9 +101,7 @@
 		formData = {
 			orderDate: new Date(order.orderDate).toISOString().split('T')[0],
 			requiredDate: new Date(order.requiredDate).toISOString().split('T')[0],
-			shippedDate: order.shippedDate
-				? new Date(order.shippedDate).toISOString().split('T')[0]
-				: '',
+			shippedDate: order.shippedDate ? new Date(order.shippedDate).toISOString().split('T')[0] : '',
 			status: order.status,
 			comments: order.comments || ''
 		};
