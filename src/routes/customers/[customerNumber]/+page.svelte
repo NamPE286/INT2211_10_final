@@ -1,39 +1,10 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
-	import type { Customer } from '$lib/types/customer';
 	import { Button } from '$lib/components/ui/button';
-	import { Spinner } from '$lib/components/ui/spinner';
 	import * as Card from '$lib/components/ui/card';
+	import type { PageData } from './$types';
 
-	let customer = $state<Customer | null>(null);
-	let loading = $state(true);
-	let error = $state<string | null>(null);
-
-	async function fetchCustomer() {
-		loading = true;
-		error = null;
-		try {
-			const customerNumber = $page.params.customerNumber;
-			const response = await fetch(`/api/customers/${customerNumber}`);
-			const result = await response.json();
-
-			if (response.ok) {
-				customer = result.data;
-			} else {
-				error = result.error || 'Failed to fetch customer details';
-			}
-		} catch (err) {
-			error = 'Failed to fetch customer details';
-			console.error(err);
-		} finally {
-			loading = false;
-		}
-	}
-
-	onMount(() => {
-		fetchCustomer();
-	});
+	let { data }: { data: PageData } = $props();
+	let customer = $derived(data.customer);
 </script>
 
 <div class="container mx-auto py-10">
@@ -42,16 +13,7 @@
 		<Button variant="outline" onclick={() => window.history.back()}>Back</Button>
 	</div>
 
-	{#if loading}
-		<div class="flex h-64 items-center justify-center">
-			<Spinner class="size-8" />
-		</div>
-	{:else if error}
-		<div class="border-border rounded-md border bg-red-50 p-4 text-red-600">
-			{error}
-		</div>
-	{:else if customer}
-		<div class="grid gap-6 md:grid-cols-2">
+	<div class="grid gap-6 md:grid-cols-2">
 			<Card.Root class="border-border">
 				<Card.Header>
 					<Card.Title>Basic Information</Card.Title>
@@ -138,5 +100,4 @@
 				</Card.Content>
 			</Card.Root>
 		</div>
-	{/if}
 </div>
