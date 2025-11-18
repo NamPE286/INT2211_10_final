@@ -83,15 +83,36 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			for (let i = 0; i < products.length; i++) {
 				const product = products[i];
+				const quantityOrdered = product.quantityOrdered || 1;
+				const [stockResult] = await connection.query(
+					'SELECT quantityInStock FROM products WHERE productCode = ?',
+					[product.productCode]
+				);
+
+				if (!Array.isArray(stockResult) || stockResult.length === 0) {
+					throw new Error(`Product ${product.productCode} not found`);
+				}
+
+				const currentStock = (stockResult[0] as { quantityInStock: number }).quantityInStock;
+
+				if (currentStock < quantityOrdered) {
+					throw new Error(`Insufficient stock for product ${product.productCode}. Available: ${currentStock}, Requested: ${quantityOrdered}`);
+				}
+
 				await connection.query(
 					'INSERT INTO orderdetails (orderNumber, productCode, quantityOrdered, priceEach, orderLineNumber) VALUES (?, ?, ?, ?, ?)',
 					[
 						newOrderNumber,
 						product.productCode,
-						product.quantityOrdered || 1,
+						quantityOrdered,
 						product.priceEach,
 						i + 1
 					]
+				);
+
+				await connection.query(
+					'UPDATE products SET quantityInStock = quantityInStock - ? WHERE productCode = ?',
+					[quantityOrdered, product.productCode]
 				);
 			}
 
