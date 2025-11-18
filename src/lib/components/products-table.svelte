@@ -313,7 +313,8 @@
 		}
 	}
 
-	const selectedCount = $derived(table.getFilteredSelectedRowModel().rows.length);
+	const selectedIds = $derived(Object.keys(rowSelection));
+	const selectedCount = $derived(selectedIds.length);
 
 	onMount(() => {
 		fetchProducts();
@@ -393,9 +394,9 @@
 		</div>
 		</div>
 		{#if selectedCount > 0}
-			<div class="bg-muted/50 flex flex-wrap items-center gap-2 rounded-md border border-border border-dashed p-2 text-sm">
+			<div class="bg-muted/50 flex flex-wrap items-center gap-2 rounded-md border border-dashed border-border p-2 text-sm">
 				<span class="font-medium">Selected ({selectedCount}):</span>
-				{#each Object.keys(rowSelection) as productCode (productCode)}
+				{#each selectedIds as productCode (productCode)}
 					<span class="bg-primary/10 text-primary rounded-md px-2 py-1">
 						{productCode}
 					</span>

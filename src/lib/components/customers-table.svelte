@@ -212,14 +212,13 @@
 			error = 'Failed to delete customers';
 			console.error(err);
 		} finally {
-			deleting = false;
-		}
+		deleting = false;
 	}
+}
 
-	const selectedCount = $derived(table.getFilteredSelectedRowModel().rows.length);
-</script>
-
-<div>
+const selectedIds = $derived(Object.keys(rowSelection));
+const selectedCount = $derived(selectedIds.length);
+</script><div>
 	<div class="flex flex-col gap-2 py-4">
 		<div class="flex items-center gap-2">
 			<Select.Root
@@ -288,7 +287,7 @@
 		{#if selectedCount > 0}
 			<div class="bg-muted/50 flex flex-wrap items-center gap-2 rounded-md border border-border border-dashed p-2 text-sm">
 				<span class="font-medium">Selected ({selectedCount}):</span>
-				{#each Object.keys(rowSelection) as customerId (customerId)}
+				{#each selectedIds as customerId (customerId)}
 					<span class="bg-primary/10 text-primary rounded-md px-2 py-1">
 						#{customerId}
 					</span>
