@@ -43,6 +43,7 @@
 		"vite": "^7.1.10"
 	},
 	"dependencies": {
+		"lucide-svelte": "^0.554.0",
 		"mysql2": "^3.15.3"
 	}
 }
