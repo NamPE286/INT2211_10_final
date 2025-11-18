@@ -5,6 +5,7 @@
 		type SortingState,
 		type ColumnFiltersState,
 		type VisibilityState,
+		type RowSelectionState,
 		getCoreRowModel,
 		getPaginationRowModel,
 		getSortedRowModel,
@@ -20,6 +21,12 @@
 	import { columns } from './products-columns.js';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { Trash2, ShoppingCart } from 'lucide-svelte';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import type { Customer } from '$lib/types/customer.js';
+	import { toast } from 'svelte-sonner';
 
 	let data = $state<Product[]>([]);
 	let loading = $state(true);
@@ -45,6 +52,51 @@
 	let sorting = $state<SortingState>([]);
 	let columnFilters = $state<ColumnFiltersState>([]);
 	let columnVisibility = $state<VisibilityState>({});
+	let rowSelection = $state<RowSelectionState>({});
+	let showDeleteDialog = $state(false);
+	let showOrderDialog = $state(false);
+	let deleting = $state(false);
+	let creatingOrder = $state(false);
+	let orderCustomerNumber = $state('');
+	let customerSearchQuery = $state('');
+	let searchedCustomers = $state<Customer[]>([]);
+	let loadingCustomers = $state(false);
+	let selectedCustomer = $state<Customer | null>(null);
+
+	async function searchCustomers() {
+		if (!customerSearchQuery.trim()) {
+			searchedCustomers = [];
+			return;
+		}
+
+		loadingCustomers = true;
+		try {
+			const params = new URLSearchParams({
+				customerName: customerSearchQuery,
+				limit: '10'
+			});
+			const response = await fetch(`/api/customers?${params}`);
+			const json = await response.json();
+
+			if (response.ok) {
+				searchedCustomers = json.data;
+			} else {
+				searchedCustomers = [];
+			}
+		} catch (err) {
+			console.error('Failed to search customers:', err);
+			searchedCustomers = [];
+		} finally {
+			loadingCustomers = false;
+		}
+	}
+
+	function selectCustomer(customer: Customer) {
+		selectedCustomer = customer;
+		orderCustomerNumber = customer.customerNumber.toString();
+		customerSearchQuery = customer.customerName;
+		searchedCustomers = [];
+	}
 
 	async function fetchProducts() {
 		loading = true;
@@ -138,6 +190,13 @@
 				columnVisibility = updater;
 			}
 		},
+		onRowSelectionChange: (updater) => {
+			if (typeof updater === 'function') {
+				rowSelection = updater(rowSelection);
+			} else {
+				rowSelection = updater;
+			}
+		},
 		state: {
 			get pagination() {
 				return pagination;
@@ -150,9 +209,104 @@
 			},
 			get columnVisibility() {
 				return columnVisibility;
+			},
+			get rowSelection() {
+				return rowSelection;
 			}
 		}
 	});
+
+	async function handleBulkDelete() {
+		const selectedRows = table.getFilteredSelectedRowModel().rows;
+		const productCodes = selectedRows.map((row) => row.original.productCode);
+
+		if (productCodes.length === 0) return;
+
+		deleting = true;
+		try {
+			const results = await Promise.all(
+				productCodes.map((id) =>
+					fetch(`/api/products/${id}`, {
+						method: 'DELETE'
+					})
+				)
+			);
+
+			const allSuccess = results.every((res) => res.ok);
+			if (allSuccess) {
+				rowSelection = {};
+				showDeleteDialog = false;
+				await fetchProducts();
+			} else {
+				error = 'Some products could not be deleted';
+			}
+		} catch (err) {
+			error = 'Failed to delete products';
+			console.error(err);
+		} finally {
+			deleting = false;
+		}
+	}
+
+	async function handleCreateOrder() {
+		const selectedRows = table.getFilteredSelectedRowModel().rows;
+		const products = selectedRows.map((row) => row.original);
+
+		if (products.length === 0 || !orderCustomerNumber) return;
+
+		creatingOrder = true;
+        
+		try {
+			const orderData = {
+				customerNumber: parseInt(orderCustomerNumber),
+				orderDate: new Date().toISOString().split('T')[0],
+				requiredDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+				status: 'In Process',
+				products: products.map((p) => ({
+					productCode: p.productCode,
+					quantityOrdered: 1,
+					priceEach: p.MSRP
+				}))
+			};
+
+			const response = await fetch('/api/orders', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(orderData)
+			});
+
+			const result = await response.json();
+
+			if (response.ok) {
+				rowSelection = {};
+				showOrderDialog = false;
+				orderCustomerNumber = '';
+				customerSearchQuery = '';
+				selectedCustomer = null;
+				searchedCustomers = [];
+				toast.success(`Order #${result.data.orderNumber} created successfully with ${products.length} product${products.length > 1 ? 's' : ''}`);
+				
+				if (result.data.orderNumber) {
+					goto(`/orders/${result.data.orderNumber}`);
+				}
+			} else {
+				const errorMessage = result.error || 'Failed to create order';
+				error = errorMessage;
+				toast.error(errorMessage);
+			}
+		} catch (err) {
+			const errorMessage = 'Failed to create order';
+			error = errorMessage;
+			toast.error(errorMessage);
+			console.error(err);
+		} finally {
+			creatingOrder = false;
+		}
+	}
+
+	const selectedCount = $derived(table.getFilteredSelectedRowModel().rows.length);
 
 	onMount(() => {
 		fetchProducts();
@@ -196,6 +350,16 @@
 			class="max-w-sm"
 		/>
 		<Button onclick={applyFilter}>Filter</Button>
+		{#if selectedCount > 0}
+			<Button variant="outline" onclick={() => (showOrderDialog = true)}>
+				<ShoppingCart class="mr-2 size-4" />
+				Create Order ({selectedCount})
+			</Button>
+			<Button variant="destructive" onclick={() => (showDeleteDialog = true)}>
+				<Trash2 class="mr-2 size-4" />
+				Delete ({selectedCount})
+			</Button>
+		{/if}
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}
@@ -253,13 +417,20 @@
 							</Table.Cell>
 						</Table.Row>
 					{:else}
-						{#each table.getRowModel().rows as row (row.id)}
-							<Table.Row
-								class="cursor-pointer"
-								onclick={() => goto(`/products/${row.original.productCode}`)}
-							>
-								{#each row.getVisibleCells() as cell (cell.id)}
-									<Table.Cell>
+					{#each table.getRowModel().rows as row (row.id)}
+						<Table.Row
+							data-state={row.getIsSelected() && 'selected'}
+							class="cursor-pointer"
+							onclick={() => goto(`/products/${row.original.productCode}`)}
+						>
+							{#each row.getVisibleCells() as cell (cell.id)}
+								<Table.Cell
+									onclick={(e) => {
+										if (cell.column.id === 'select') {
+											e.stopPropagation();
+										}
+									}}
+								>
 										<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
 									</Table.Cell>
 								{/each}
@@ -295,3 +466,128 @@
 		</div>
 	{/if}
 </div>
+
+<Dialog.Root bind:open={showOrderDialog}>
+	<Dialog.Content class="border-border">
+		<Dialog.Header>
+			<Dialog.Title>Create Order from Products</Dialog.Title>
+			<Dialog.Description>
+				Create a new order with {selectedCount} selected product{selectedCount > 1 ? 's' : ''}.
+			</Dialog.Description>
+		</Dialog.Header>
+		<div class="grid gap-4 py-4">
+			<div class="grid gap-2">
+				<Label for="customerSearch">Search Customer by Name</Label>
+				<div class="relative">
+					<Input
+						id="customerSearch"
+						type="text"
+						bind:value={customerSearchQuery}
+						oninput={searchCustomers}
+						placeholder="Type customer name to search..."
+					/>
+					{#if loadingCustomers}
+						<div class="absolute top-1/2 right-3 -translate-y-1/2">
+							<Spinner class="size-4" />
+						</div>
+					{/if}
+				</div>
+				{#if searchedCustomers.length > 0}
+					<div class="border-border mt-1 max-h-48 overflow-y-auto rounded-md border">
+						{#each searchedCustomers as customer (customer.customerNumber)}
+							<div class="hover:bg-accent flex items-center gap-2 px-3 py-2 transition-colors">
+								<button
+									type="button"
+									class="flex-1 text-left text-sm"
+									onclick={() => selectCustomer(customer)}
+								>
+									<div class="font-medium">{customer.customerName}</div>
+									<div class="text-muted-foreground text-xs">
+										#{customer.customerNumber} • {customer.city}, {customer.country}
+									</div>
+								</button>
+								<Button
+									size="sm"
+									variant="ghost"
+									onclick={() => goto(`/customers/${customer.customerNumber}`)}
+								>
+									View
+								</Button>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
+			{#if selectedCustomer}
+				<div class="bg-muted rounded-md p-3">
+					<div class="flex items-center justify-between">
+						<div>
+							<div class="text-sm font-medium">Selected Customer:</div>
+							<div class="mt-1 text-sm">{selectedCustomer.customerName}</div>
+							<div class="text-muted-foreground text-xs">
+								Customer #{selectedCustomer.customerNumber}
+							</div>
+						</div>
+						<Button
+							size="sm"
+							variant="outline"
+							onclick={() =>
+								selectedCustomer && goto(`/customers/${selectedCustomer.customerNumber}`)}
+						>
+							View
+						</Button>
+					</div>
+				</div>
+			{/if}
+			<div class="grid gap-2">
+				<Label for="customerNumber">Customer Number</Label>
+				<Input
+					id="customerNumber"
+					type="number"
+					bind:value={orderCustomerNumber}
+					placeholder="Enter customer number or search above"
+					readonly={!!selectedCustomer}
+				/>
+			</div>
+			<div class="text-muted-foreground text-sm">
+				Note: This will create an order with default quantity of 1 for each product.
+			</div>
+		</div>
+		<Dialog.Footer>
+			<Button
+				type="button"
+				variant="outline"
+				onclick={() => {
+					showOrderDialog = false;
+					customerSearchQuery = '';
+					selectedCustomer = null;
+					searchedCustomers = [];
+				}}
+				disabled={creatingOrder}
+			>
+				Cancel
+			</Button>
+			<Button onclick={handleCreateOrder} disabled={creatingOrder || !orderCustomerNumber}>
+				{creatingOrder ? 'Creating...' : 'Create Order'}
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
+
+<AlertDialog.Root bind:open={showDeleteDialog}>
+	<AlertDialog.Content class="border-border">
+		<AlertDialog.Header>
+			<AlertDialog.Title>Are you sure?</AlertDialog.Title>
+			<AlertDialog.Description>
+				This will permanently delete {selectedCount} product{selectedCount > 1 ? 's' : ''} and all
+				associated order details. This action cannot be undone.
+			</AlertDialog.Description>
+		</AlertDialog.Header>
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel disabled={deleting}>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action onclick={handleBulkDelete} disabled={deleting}>
+				{deleting ? 'Deleting...' : 'Delete'}
+			</AlertDialog.Action>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>

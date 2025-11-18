@@ -53,3 +53,63 @@ export const GET: RequestHandler = async ({ url }) => {
 		return json({ error: 'Failed to fetch orders' }, { status: 500 });
 	}
 };
+
+export const POST: RequestHandler = async ({ request }) => {
+	try {
+		const body = await request.json();
+		const { customerNumber, orderDate, requiredDate, shippedDate, status, comments, products } = body;
+
+		if (!customerNumber || !orderDate || !requiredDate || !status) {
+			return json({ error: 'Missing required fields' }, { status: 400 });
+		}
+
+		if (!products || !Array.isArray(products) || products.length === 0) {
+			return json({ error: 'At least one product is required' }, { status: 400 });
+		}
+
+		await connection.beginTransaction();
+
+		try {
+			// Get the maximum orderNumber and increment it
+			const [maxResult] = await connection.query('SELECT MAX(orderNumber) as maxOrderNumber FROM orders');
+			const maxOrderNumber = Array.isArray(maxResult) && maxResult.length > 0 
+				? ((maxResult[0] as { maxOrderNumber: number | null }).maxOrderNumber || 0)
+				: 0;
+			const newOrderNumber = maxOrderNumber + 1;
+
+			// Insert order with explicit orderNumber
+			await connection.query(
+				'INSERT INTO orders (orderNumber, customerNumber, orderDate, requiredDate, shippedDate, status, comments) VALUES (?, ?, ?, ?, ?, ?, ?)',
+				[newOrderNumber, customerNumber, orderDate, requiredDate, shippedDate || null, status, comments || null]
+			);
+
+			for (let i = 0; i < products.length; i++) {
+				const product = products[i];
+				await connection.query(
+					'INSERT INTO orderdetails (orderNumber, productCode, quantityOrdered, priceEach, orderLineNumber) VALUES (?, ?, ?, ?, ?)',
+					[
+						newOrderNumber,
+						product.productCode,
+						product.quantityOrdered || 1,
+						product.priceEach,
+						i + 1
+					]
+				);
+			}
+
+			await connection.commit();
+
+			return json({ 
+				success: true, 
+				data: { orderNumber: newOrderNumber },
+				message: 'Order created successfully'
+			}, { status: 201 });
+		} catch (err) {
+			await connection.rollback();
+			throw err;
+		}
+	} catch (err) {
+		console.error(err);
+		return json({ error: 'Failed to create order' }, { status: 500 });
+	}
+};
