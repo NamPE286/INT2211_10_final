@@ -255,7 +255,7 @@
 		if (products.length === 0 || !orderCustomerNumber) return;
 
 		creatingOrder = true;
-        
+
 		try {
 			const orderData = {
 				customerNumber: parseInt(orderCustomerNumber),
@@ -470,7 +470,7 @@
 <Dialog.Root bind:open={showOrderDialog}>
 	<Dialog.Content class="border-border">
 		<Dialog.Header>
-			<Dialog.Title>Create Order from Products</Dialog.Title>
+			<Dialog.Title>Create new order</Dialog.Title>
 			<Dialog.Description>
 				Create a new order with {selectedCount} selected product{selectedCount > 1 ? 's' : ''}.
 			</Dialog.Description>
