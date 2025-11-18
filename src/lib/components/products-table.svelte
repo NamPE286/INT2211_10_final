@@ -27,6 +27,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import type { Customer } from '$lib/types/customer.js';
 	import { toast } from 'svelte-sonner';
+	import Search from '@lucide/svelte/icons/search';
 
 	let data = $state<Product[]>([]);
 	let loading = $state(true);
@@ -286,8 +287,10 @@
 				customerSearchQuery = '';
 				selectedCustomer = null;
 				searchedCustomers = [];
-				toast.success(`Order #${result.data.orderNumber} created successfully with ${products.length} product${products.length > 1 ? 's' : ''}`);
-				
+				toast.success(
+					`Order #${result.data.orderNumber} created successfully with ${products.length} product${products.length > 1 ? 's' : ''}`
+				);
+
 				if (result.data.orderNumber) {
 					goto(`/orders/${result.data.orderNumber}`);
 				}
@@ -337,7 +340,7 @@
 			</Select.Content>
 		</Select.Root>
 		<Input
-			placeholder={`Filter by ${filterableColumns.find((c) => c.value === selectedFilterColumn)?.label.toLowerCase() || 'product name'}...`}
+			placeholder={`Search by ${filterableColumns.find((c) => c.value === selectedFilterColumn)?.label.toLowerCase() || 'product name'}...`}
 			value={searchQuery}
 			oninput={(e) => {
 				handleSearch(e.currentTarget.value);
@@ -349,7 +352,7 @@
 			}}
 			class="max-w-sm"
 		/>
-		<Button onclick={applyFilter}>Filter</Button>
+		<Button onclick={applyFilter}><Search /></Button>
 		{#if selectedCount > 0}
 			<Button variant="outline" onclick={() => (showOrderDialog = true)}>
 				<ShoppingCart class="mr-2 size-4" />
@@ -417,27 +420,29 @@
 							</Table.Cell>
 						</Table.Row>
 					{:else}
-					{#each table.getRowModel().rows as row (row.id)}
-						<Table.Row
-							data-state={row.getIsSelected() && 'selected'}
-							class="cursor-pointer"
-							onclick={() => goto(`/products/${row.original.productCode}`)}
-						>
-							{#each row.getVisibleCells() as cell (cell.id)}
-								<Table.Cell
-									onclick={(e) => {
-										if (cell.column.id === 'select') {
-											e.stopPropagation();
-										}
-									}}
-								>
+						{#each table.getRowModel().rows as row (row.id)}
+							<Table.Row
+								data-state={row.getIsSelected() && 'selected'}
+								class="cursor-pointer"
+								onclick={() => goto(`/products/${row.original.productCode}`)}
+							>
+								{#each row.getVisibleCells() as cell (cell.id)}
+									<Table.Cell
+										onclick={(e) => {
+											if (cell.column.id === 'select') {
+												e.stopPropagation();
+											}
+										}}
+									>
 										<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
 									</Table.Cell>
 								{/each}
 							</Table.Row>
 						{:else}
 							<Table.Row>
-								<Table.Cell colspan={columns.length} class="h-24 text-center">No results.</Table.Cell>
+								<Table.Cell colspan={columns.length} class="h-24 text-center"
+									>No results.</Table.Cell
+								>
 							</Table.Row>
 						{/each}
 					{/if}
@@ -579,8 +584,8 @@
 		<AlertDialog.Header>
 			<AlertDialog.Title>Are you sure?</AlertDialog.Title>
 			<AlertDialog.Description>
-				This will permanently delete {selectedCount} product{selectedCount > 1 ? 's' : ''} and all
-				associated order details. This action cannot be undone.
+				This will permanently delete {selectedCount} product{selectedCount > 1 ? 's' : ''} and all associated
+				order details. This action cannot be undone.
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>

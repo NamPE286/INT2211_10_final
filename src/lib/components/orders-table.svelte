@@ -28,6 +28,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import type { Customer } from '$lib/types/customer.js';
 	import { toast } from 'svelte-sonner';
+	import Search from '@lucide/svelte/icons/search';
 
 	let data = $state<OrderWithCustomer[]>([]);
 	let loading = $state(true);
@@ -339,7 +340,7 @@
 			</Select.Content>
 		</Select.Root>
 		<Input
-			placeholder={`Filter by ${filterableColumns.find((c) => c.value === selectedFilterColumn)?.label.toLowerCase() || 'customer name'}...`}
+			placeholder={`Search by ${filterableColumns.find((c) => c.value === selectedFilterColumn)?.label.toLowerCase() || 'customer name'}...`}
 			value={searchQuery}
 			oninput={(e) => {
 				handleSearch(e.currentTarget.value);
@@ -351,7 +352,7 @@
 			}}
 			class="max-w-sm"
 		/>
-		<Button onclick={applyFilter}>Filter</Button>
+		<Button onclick={applyFilter}><Search /></Button>
 		{#if selectedCount > 0}
 			<Button variant="outline" onclick={() => (showAssignDialog = true)}>
 				<UserPlus class="mr-2 size-4" />
