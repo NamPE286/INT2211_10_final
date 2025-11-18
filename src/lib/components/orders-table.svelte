@@ -383,135 +383,129 @@
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
 	</div>
-	{#if error}
-		<p class="text-red-500">{error}</p>
-	{:else}
-		<div class="border-border rounded-md border">
-			<Table.Root>
-				<Table.Header>
-					{#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
-						<Table.Row>
-							{#each headerGroup.headers as header (header.id)}
-								<Table.Head
-									colspan={header.colSpan}
-									onclick={() => {
-										if (header.column.getCanSort()) {
-											header.column.toggleSorting();
-										}
-									}}
-									class={header.column.getCanSort() ? 'cursor-pointer select-none' : ''}
-								>
-									{#if !header.isPlaceholder}
-										<FlexRender
-											content={header.column.columnDef.header}
-											context={header.getContext()}
-										/>
-									{/if}
-								</Table.Head>
-							{/each}
-						</Table.Row>
-					{/each}
-				</Table.Header>
-				<Table.Body>
-					{#if loading}
-						<Table.Row>
-							<Table.Cell colspan={columns.length} class="h-24 text-center">
-								<div class="flex items-center justify-center gap-2">
-									<Spinner class="size-5" />
-								</div>
-							</Table.Cell>
-						</Table.Row>
-					{:else}
-						{#each table.getRowModel().rows as row (row.id)}
-							<Table.Row
-								data-state={row.getIsSelected() && 'selected'}
-								class="cursor-pointer"
-								onclick={(e) => {
-									const target = e.target as HTMLElement;
-									if (target.hasAttribute('data-customer-link')) {
-										e.stopPropagation();
-										const customerNumber = target.getAttribute('data-customer-link');
-										goto(`/customers/${customerNumber}`);
-									} else {
-										goto(`/orders/${row.original.orderNumber}`);
+	<div class="border-border rounded-md border">
+		<Table.Root>
+			<Table.Header>
+				{#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
+					<Table.Row>
+						{#each headerGroup.headers as header (header.id)}
+							<Table.Head
+								colspan={header.colSpan}
+								onclick={() => {
+									if (header.column.getCanSort()) {
+										header.column.toggleSorting();
 									}
 								}}
+								class={header.column.getCanSort() ? 'cursor-pointer select-none' : ''}
 							>
-								{#each row.getVisibleCells() as cell (cell.id)}
-									<Table.Cell
-										onclick={(e) => {
-											if (cell.column.id === 'select') {
-												e.stopPropagation();
-											}
-										}}
-									>
-										<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
-									</Table.Cell>
-								{/each}
-							</Table.Row>
-						{:else}
-							<Table.Row>
-								<Table.Cell colspan={columns.length} class="h-24 text-center"
-									>No results.</Table.Cell
-								>
-							</Table.Row>
+								{#if !header.isPlaceholder}
+									<FlexRender
+										content={header.column.columnDef.header}
+										context={header.getContext()}
+									/>
+								{/if}
+							</Table.Head>
 						{/each}
-					{/if}
-				</Table.Body>
-			</Table.Root>
-		</div>
-		<div class="flex items-center justify-between space-x-2 py-4">
-			<div class="text-muted-foreground flex-1 text-sm">
-				{table.getFilteredSelectedRowModel().rows.length} of{' '}
-				{table.getFilteredRowModel().rows.length} row(s) selected.
-			</div>
-			<div class="flex items-center space-x-2">
-				<div class="flex items-center space-x-2">
-					<span class="text-muted-foreground text-sm">Rows per page:</span>
-					<Select.Root
-						type="single"
-						value={pagination.pageSize.toString()}
-						onValueChange={(value) => {
-							if (value) {
-								pagination = { ...pagination, pageSize: parseInt(value), pageIndex: 0 };
-								fetchOrders();
-							}
-						}}
-					>
-						<Select.Trigger class="w-20">
-							{pagination.pageSize}
-						</Select.Trigger>
-						<Select.Content class="border-border">
-							{#each pageSizeOptions as size (size)}
-								<Select.Item value={size.toString()} label={size.toString()}>
-									{size}
-								</Select.Item>
+					</Table.Row>
+				{/each}
+			</Table.Header>
+			<Table.Body>
+				{#if loading}
+					<Table.Row>
+						<Table.Cell colspan={columns.length} class="h-24 text-center">
+							<div class="flex items-center justify-center gap-2">
+								<Spinner class="size-5" />
+							</div>
+						</Table.Cell>
+					</Table.Row>
+				{:else}
+					{#each table.getRowModel().rows as row (row.id)}
+						<Table.Row
+							data-state={row.getIsSelected() && 'selected'}
+							class="cursor-pointer"
+							onclick={(e) => {
+								const target = e.target as HTMLElement;
+								if (target.hasAttribute('data-customer-link')) {
+									e.stopPropagation();
+									const customerNumber = target.getAttribute('data-customer-link');
+									goto(`/customers/${customerNumber}`);
+								} else {
+									goto(`/orders/${row.original.orderNumber}`);
+								}
+							}}
+						>
+							{#each row.getVisibleCells() as cell (cell.id)}
+								<Table.Cell
+									onclick={(e) => {
+										if (cell.column.id === 'select') {
+											e.stopPropagation();
+										}
+									}}
+								>
+									<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
+								</Table.Cell>
 							{/each}
-						</Select.Content>
-					</Select.Root>
-				</div>
-				<div class="text-muted-foreground text-sm">
-					Page {pagination.pageIndex + 1} of {pageCount || 1}
-				</div>
-				<Button
-					variant="outline"
-					size="sm"
-					onclick={() => table.previousPage()}
-					disabled={!table.getCanPreviousPage()}
-				>
-					Previous
-				</Button>
-				<Button
-					variant="outline"
-					size="sm"
-					onclick={() => table.nextPage()}
-					disabled={!table.getCanNextPage()}
-				>
-					Next
-				</Button>
-			</div>
+						</Table.Row>
+					{:else}
+						<Table.Row>
+							<Table.Cell colspan={columns.length} class="h-24 text-center">No results.</Table.Cell>
+						</Table.Row>
+					{/each}
+				{/if}
+			</Table.Body>
+		</Table.Root>
+	</div>
+	<div class="flex items-center justify-between space-x-2 py-4">
+		<div class="text-muted-foreground flex-1 text-sm">
+			{table.getFilteredSelectedRowModel().rows.length} of{' '}
+			{table.getFilteredRowModel().rows.length} row(s) selected.
 		</div>
-	{/if}
+		<div class="flex items-center space-x-2">
+			<div class="flex items-center space-x-2">
+				<span class="text-muted-foreground text-sm">Rows per page:</span>
+				<Select.Root
+					type="single"
+					value={pagination.pageSize.toString()}
+					onValueChange={(value) => {
+						if (value) {
+							pagination = { ...pagination, pageSize: parseInt(value), pageIndex: 0 };
+							fetchOrders();
+						}
+					}}
+				>
+					<Select.Trigger class="w-20">
+						{pagination.pageSize}
+					</Select.Trigger>
+					<Select.Content class="border-border">
+						{#each pageSizeOptions as size (size)}
+							<Select.Item value={size.toString()} label={size.toString()}>
+								{size}
+							</Select.Item>
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</div>
+			<div class="text-muted-foreground text-sm">
+				Page {pagination.pageIndex + 1} of {pageCount || 1}
+			</div>
+			<Button
+				variant="outline"
+				size="sm"
+				onclick={() => table.previousPage()}
+				disabled={!table.getCanPreviousPage()}
+			>
+				Previous
+			</Button>
+			<Button
+				variant="outline"
+				size="sm"
+				onclick={() => table.nextPage()}
+				disabled={!table.getCanNextPage()}
+			>
+				Next
+			</Button>
+		</div>
+	</div>
 </div>
 
 <Dialog.Root bind:open={showAssignDialog}>
