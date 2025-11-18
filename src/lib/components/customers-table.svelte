@@ -18,6 +18,7 @@
 	} from "$lib/components/ui/data-table/index.js";
 	import * as Table from "$lib/components/ui/table/index.js";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
+	import * as Select from "$lib/components/ui/select/index.js";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
 	import { columns } from "./customers-columns.js";
@@ -29,7 +30,23 @@
 	let totalCount = $state(0);
 	let pageCount = $state(0);
 	let searchQuery = $state("");
+	let selectedFilterColumn = $state("customerName");
 	let debounceTimer: ReturnType<typeof setTimeout>;
+
+	const filterableColumns = [
+		{ value: "customerNumber", label: "No" },
+		{ value: "customerName", label: "Name" },
+		{ value: "contactFirstName", label: "First Name" },
+		{ value: "contactLastName", label: "Last Name" },
+		{ value: "phone", label: "Phone" },
+		{ value: "city", label: "City" },
+		{ value: "state", label: "State" },
+		{ value: "country", label: "Country" },
+	];
+
+	const selectedColumnLabel = $derived(
+		filterableColumns.find((c) => c.value === selectedFilterColumn)?.label ?? "Select column"
+	);
 
 	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 15 });
 	let sorting = $state<SortingState>([]);
@@ -47,12 +64,12 @@
 				offset: offset.toString(),
 			});
 			if (searchQuery) {
-				params.append('customerName', searchQuery);
+				params.append(selectedFilterColumn, searchQuery);
 			}
 			
 			const [dataRes, countRes] = await Promise.all([
 				fetch(`/api/customers?${params}`),
-				fetch(`/api/customers/count?${searchQuery ? `customerName=${searchQuery}` : ''}`)
+				fetch(`/api/customers/count?${searchQuery ? `${selectedFilterColumn}=${searchQuery}` : ''}`)
 			]);
 			
 			const dataJson = await dataRes.json();
@@ -75,11 +92,11 @@
 
 	function handleSearch(value: string) {
 		searchQuery = value;
-		clearTimeout(debounceTimer);
-		debounceTimer = setTimeout(() => {
-			pagination.pageIndex = 0;
-			fetchCustomers();
-		}, 300);
+	}
+
+	function applyFilter() {
+		pagination.pageIndex = 0;
+		fetchCustomers();
 	}
 
 	const table = createSvelteTable({
@@ -155,15 +172,42 @@
 </script>
 
 <div>
-	<div class="flex items-center py-4">
+	<div class="flex items-center gap-2 py-4">
+		<Select.Root
+			type="single"
+			bind:value={selectedFilterColumn}
+			onValueChange={() => {
+				if (searchQuery) {
+					pagination.pageIndex = 0;
+					fetchCustomers();
+				}
+			}}
+		>
+			<Select.Trigger class="w-40">
+				{selectedColumnLabel}
+			</Select.Trigger>
+			<Select.Content>
+				{#each filterableColumns as column (column.value)}
+					<Select.Item value={column.value} label={column.label}>
+						{column.label}
+					</Select.Item>
+				{/each}
+			</Select.Content>
+		</Select.Root>
 		<Input
-			placeholder="Filter by name..."
+			placeholder={`Filter by ${filterableColumns.find(c => c.value === selectedFilterColumn)?.label.toLowerCase() || 'name'}...`}
 			value={searchQuery}
 			oninput={(e) => {
 				handleSearch(e.currentTarget.value);
 			}}
+			onkeydown={(e) => {
+				if (e.key === 'Enter') {
+					applyFilter();
+				}
+			}}
 			class="max-w-sm"
 		/>
+		<Button onclick={applyFilter}>Filter</Button>
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}

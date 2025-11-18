@@ -4,14 +4,25 @@ import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url }) => {
     try {
-        const customerName = url.searchParams.get('customerName');
+        const filterableColumns = ['customerName', 'contactFirstName', 'contactLastName', 'phone', 'city', 'state', 'country'];
+        let filterColumn: string | null = null;
+        let filterValue: string | null = null;
+        
+        for (const column of filterableColumns) {
+            const value = url.searchParams.get(column);
+            if (value) {
+                filterColumn = column;
+                filterValue = value;
+                break;
+            }
+        }
 
         let countQuery = 'SELECT COUNT(*) as total FROM customers';
         const params = [];
 
-        if (customerName) {
-            countQuery += ' WHERE customerName LIKE ?';
-            params.push(`%${customerName}%`);
+        if (filterColumn && filterValue) {
+            countQuery += ` WHERE ${filterColumn} LIKE ?`;
+            params.push(`%${filterValue}%`);
         }
 
         const [countResult] = await connection.query(countQuery, params) as [Array<{ total: number }>, unknown];

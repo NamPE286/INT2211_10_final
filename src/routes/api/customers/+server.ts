@@ -6,14 +6,26 @@ export const GET: RequestHandler = async ({ url }) => {
     try {
         const limit = url.searchParams.get('limit') || '50';
         const offset = url.searchParams.get('offset') || '0';
-        const customerName = url.searchParams.get('customerName');
+        
+        const filterableColumns = ['customerNumber', 'customerName', 'contactFirstName', 'contactLastName', 'phone', 'city', 'state', 'country'];
+        let filterColumn: string | null = null;
+        let filterValue: string | null = null;
+        
+        for (const column of filterableColumns) {
+            const value = url.searchParams.get(column);
+            if (value) {
+                filterColumn = column;
+                filterValue = value;
+                break;
+            }
+        }
 
         let query = 'SELECT * FROM customers';
         const params = [];
 
-        if (customerName) {
-            query += ' WHERE customerName LIKE ?';
-            params.push(`%${customerName}%`);
+        if (filterColumn && filterValue) {
+            query += ` WHERE ${filterColumn} LIKE ?`;
+            params.push(`%${filterValue}%`);
         }
 
         query += ' ORDER BY customerName LIMIT ? OFFSET ?';
