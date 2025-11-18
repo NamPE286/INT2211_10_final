@@ -64,6 +64,8 @@
 	let assigning = $state(false);
 	let newCustomerNumber = $state('');
 
+	const pageSizeOptions = [10, 15, 25, 50, 100];
+
 	async function fetchOrders() {
 		loading = true;
 		error = null;
@@ -458,8 +460,39 @@
 				</Table.Body>
 			</Table.Root>
 		</div>
-		<div class="flex items-center justify-end space-x-2 py-4">
-			<div class="flex space-x-2">
+		<div class="flex items-center justify-between space-x-2 py-4">
+			<div class="text-muted-foreground flex-1 text-sm">
+				{table.getFilteredSelectedRowModel().rows.length} of{' '}
+				{table.getFilteredRowModel().rows.length} row(s) selected.
+			</div>
+			<div class="flex items-center space-x-2">
+				<div class="flex items-center space-x-2">
+					<span class="text-muted-foreground text-sm">Rows per page:</span>
+					<Select.Root
+						type="single"
+						value={pagination.pageSize.toString()}
+						onValueChange={(value) => {
+							if (value) {
+								pagination = { ...pagination, pageSize: parseInt(value), pageIndex: 0 };
+								fetchOrders();
+							}
+						}}
+					>
+						<Select.Trigger class="w-20">
+							{pagination.pageSize}
+						</Select.Trigger>
+						<Select.Content class="border-border">
+							{#each pageSizeOptions as size (size)}
+								<Select.Item value={size.toString()} label={size.toString()}>
+									{size}
+								</Select.Item>
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				</div>
+				<div class="text-muted-foreground text-sm">
+					Page {pagination.pageIndex + 1} of {pageCount || 1}
+				</div>
 				<Button
 					variant="outline"
 					size="sm"
