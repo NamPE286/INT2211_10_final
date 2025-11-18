@@ -3,6 +3,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { Plus } from 'lucide-svelte';
 
 	interface Props {
 		open?: boolean;
@@ -94,9 +95,9 @@
 
 <Dialog.Root bind:open onOpenChange={handleOpenChange}>
 	<Dialog.Trigger>
-		<Button>Add Customer</Button>
+		<Button variant='outline'><Plus /></Button>
 	</Dialog.Trigger>
-	<Dialog.Content class="max-h-[90vh] border-border overflow-y-auto sm:max-w-[600px]">
+	<Dialog.Content class="border-border max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
 		<Dialog.Header>
 			<Dialog.Title>Add New Customer</Dialog.Title>
 			<Dialog.Description>Enter customer information below.</Dialog.Description>
@@ -155,11 +156,7 @@
 
 				<div class="grid gap-2">
 					<Label for="addressLine2">Address Line 2</Label>
-					<Input
-						id="addressLine2"
-						bind:value={formData.addressLine2}
-						placeholder="Suite 100"
-					/>
+					<Input id="addressLine2" bind:value={formData.addressLine2} placeholder="Suite 100" />
 				</div>
 
 				<div class="grid grid-cols-2 gap-4">
@@ -196,11 +193,7 @@
 					</div>
 					<div class="grid gap-2">
 						<Label for="creditLimit">Credit Limit</Label>
-						<Input
-							id="creditLimit"
-							bind:value={formData.creditLimit}
-							placeholder="10000.00"
-						/>
+						<Input id="creditLimit" bind:value={formData.creditLimit} placeholder="10000.00" />
 					</div>
 				</div>
 			</div>

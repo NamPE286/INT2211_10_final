@@ -213,7 +213,6 @@
 			class="max-w-sm"
 		/>
 		<Button onclick={applyFilter}>Filter</Button>
-		<AddCustomerDialog onSuccess={fetchCustomers} />
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}
@@ -231,6 +230,7 @@
 				{/each}
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
+		<AddCustomerDialog onSuccess={fetchCustomers} />
 	</div>
 	{#if error}
 		<p class="text-red-500">{error}</p>
