@@ -27,6 +27,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import type { Customer } from '$lib/types/customer.js';
+	import { toast } from 'svelte-sonner';
 
 	let data = $state<OrderWithCustomer[]>([]);
 	let loading = $state(true);
@@ -92,10 +93,14 @@
 				totalCount = countJson.total;
 				pageCount = Math.ceil(totalCount / pagination.pageSize);
 			} else {
-				error = dataJson.error || countJson.error || 'Failed to fetch orders';
+				const errorMessage = dataJson.error || countJson.error || 'Failed to fetch orders';
+				error = errorMessage;
+				toast.error(errorMessage);
 			}
 		} catch (err) {
-			error = 'Failed to fetch orders';
+			const errorMessage = 'Failed to fetch orders';
+			error = errorMessage;
+			toast.error(errorMessage);
 			console.error(err);
 		} finally {
 			loading = false;
@@ -200,12 +205,19 @@
 			if (allSuccess) {
 				rowSelection = {};
 				showDeleteDialog = false;
+				toast.success(
+					`Successfully deleted ${orderNumbers.length} order${orderNumbers.length > 1 ? 's' : ''}`
+				);
 				await fetchOrders();
 			} else {
-				error = 'Some orders could not be deleted';
+				const errorMessage = 'Some orders could not be deleted';
+				error = errorMessage;
+				toast.error(errorMessage);
 			}
 		} catch (err) {
-			error = 'Failed to delete orders';
+			const errorMessage = 'Failed to delete orders';
+			error = errorMessage;
+			toast.error(errorMessage);
 			console.error(err);
 		} finally {
 			deleting = false;
@@ -277,12 +289,19 @@
 				customerSearchQuery = '';
 				selectedCustomer = null;
 				searchedCustomers = [];
+				toast.success(
+					`Successfully assigned ${orderNumbers.length} order${orderNumbers.length > 1 ? 's' : ''}`
+				);
 				await fetchOrders();
 			} else {
-				error = 'Some orders could not be updated';
+				const errorMessage = 'Some orders could not be updated';
+				error = errorMessage;
+				toast.error(errorMessage);
 			}
 		} catch (err) {
-			error = 'Failed to assign orders';
+			const errorMessage = 'Failed to assign orders';
+			error = errorMessage;
+			toast.error(errorMessage);
 			console.error(err);
 		} finally {
 			assigning = false;
@@ -429,7 +448,9 @@
 							</Table.Row>
 						{:else}
 							<Table.Row>
-								<Table.Cell colspan={columns.length} class="h-24 text-center">No results.</Table.Cell>
+								<Table.Cell colspan={columns.length} class="h-24 text-center"
+									>No results.</Table.Cell
+								>
 							</Table.Row>
 						{/each}
 					{/if}
@@ -479,7 +500,7 @@
 						placeholder="Type customer name to search..."
 					/>
 					{#if loadingCustomers}
-						<div class="absolute right-3 top-1/2 -translate-y-1/2">
+						<div class="absolute top-1/2 right-3 -translate-y-1/2">
 							<Spinner class="size-4" />
 						</div>
 					{/if}
@@ -487,7 +508,7 @@
 				{#if searchedCustomers.length > 0}
 					<div class="border-border mt-1 max-h-48 overflow-y-auto rounded-md border">
 						{#each searchedCustomers as customer (customer.customerNumber)}
-							<div class="flex items-center gap-2 px-3 py-2 hover:bg-accent transition-colors">
+							<div class="hover:bg-accent flex items-center gap-2 px-3 py-2 transition-colors">
 								<button
 									type="button"
 									class="flex-1 text-left text-sm"
@@ -523,7 +544,8 @@
 						<Button
 							size="sm"
 							variant="outline"
-							onclick={() => selectedCustomer && goto(`/customers/${selectedCustomer.customerNumber}`)}
+							onclick={() =>
+								selectedCustomer && goto(`/customers/${selectedCustomer.customerNumber}`)}
 						>
 							View
 						</Button>
@@ -567,8 +589,8 @@
 		<AlertDialog.Header>
 			<AlertDialog.Title>Are you sure?</AlertDialog.Title>
 			<AlertDialog.Description>
-				This will permanently delete {selectedCount} order{selectedCount > 1 ? 's' : ''} and all
-				associated order details. This action cannot be undone.
+				This will permanently delete {selectedCount} order{selectedCount > 1 ? 's' : ''} and all associated
+				order details. This action cannot be undone.
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
