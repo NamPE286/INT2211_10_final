@@ -154,11 +154,6 @@
 	});
 </script>
 
-{#if loading}
-	<p>Loading...</p>
-{:else if error}
-	<p class="text-red-500">{error}</p>
-{:else}
 <div>
 	<div class="flex items-center py-4">
 		<Input
@@ -189,6 +184,11 @@
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
 	</div>
+	{#if loading}
+		<p>Loading...</p>
+	{:else if error}
+		<p class="text-red-500">{error}</p>
+	{:else}
 	<div class="rounded-md border-border border">
 		<Table.Root>
 			<Table.Header>
@@ -253,5 +253,5 @@
 			</Button>
 		</div>
 	</div>
+	{/if}
 </div>
-{/if}
