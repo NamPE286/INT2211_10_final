@@ -4,14 +4,12 @@
 	import { Moon, Sun } from 'lucide-svelte';
 </script>
 
-<nav class="border-b">
+<nav>
 	<div class="container mx-auto px-4 py-3 flex items-center justify-between">
 		<div class="flex items-center gap-8">
-			<a href="/" class="text-xl font-bold">MyApp</a>
+			<a href="/" class="text-xl font-bold">INT2211</a>
 			<div class="hidden md:flex items-center gap-6">
 				<a href="/" class="text-sm hover:text-primary transition-colors">Home</a>
-				<a href="/about" class="text-sm hover:text-primary transition-colors">About</a>
-				<a href="/contact" class="text-sm hover:text-primary transition-colors">Contact</a>
 			</div>
 		</div>
 		
