@@ -3,20 +3,29 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url }) => {
-	try {
-		const limit = url.searchParams.get('limit') || '50';
-		const offset = url.searchParams.get('offset') || '0';
+    try {
+        const limit = url.searchParams.get('limit') || '50';
+        const offset = url.searchParams.get('offset') || '0';
+        const customerName = url.searchParams.get('customerName');
 
-		const [rows] = await connection.query('SELECT * FROM customers LIMIT ? OFFSET ?', [
-			parseInt(limit),
-			parseInt(offset)
-		]);
+        let query = 'SELECT * FROM customers';
+        const params = [];
 
-		return json({ data: rows });
-	} catch (err) {
-		console.error(err);
-		return json({ error: 'Failed to fetch customers' }, { status: 500 });
-	}
+        if (customerName) {
+            query += ' WHERE customerName LIKE ?';
+            params.push(`%${customerName}%`);
+        }
+
+        query += ' LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), parseInt(offset));
+
+        const [rows] = await connection.query(query, params);
+
+        return json({ data: rows });
+    } catch (err) {
+        console.error(err);
+        return json({ error: 'Failed to fetch customers' }, { status: 500 });
+    }
 };
 
 export const POST: RequestHandler = async ({ request }) => {
