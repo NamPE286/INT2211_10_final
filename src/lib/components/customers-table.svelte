@@ -229,9 +229,7 @@
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
 	</div>
-	{#if loading}
-		<p>Loading...</p>
-	{:else if error}
+	{#if error}
 		<p class="text-red-500">{error}</p>
 	{:else}
 		<div class="border-border rounded-md border">
@@ -261,19 +259,25 @@
 					{/each}
 				</Table.Header>
 				<Table.Body>
-					{#each table.getRowModel().rows as row (row.id)}
-						<Table.Row data-state={row.getIsSelected() && 'selected'}>
-							{#each row.getVisibleCells() as cell (cell.id)}
-								<Table.Cell>
-									<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
-								</Table.Cell>
-							{/each}
+					{#if loading}
+						<Table.Row>
+							<Table.Cell colspan={columns.length} class="h-24 text-center">Loading...</Table.Cell>
 						</Table.Row>
 					{:else}
-						<Table.Row>
-							<Table.Cell colspan={columns.length} class="h-24 text-center">No results.</Table.Cell>
-						</Table.Row>
-					{/each}
+						{#each table.getRowModel().rows as row (row.id)}
+							<Table.Row data-state={row.getIsSelected() && 'selected'}>
+								{#each row.getVisibleCells() as cell (cell.id)}
+									<Table.Cell>
+										<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
+									</Table.Cell>
+								{/each}
+							</Table.Row>
+						{:else}
+							<Table.Row>
+								<Table.Cell colspan={columns.length} class="h-24 text-center">No results.</Table.Cell>
+							</Table.Row>
+						{/each}
+					{/if}
 				</Table.Body>
 			</Table.Root>
 		</div>
