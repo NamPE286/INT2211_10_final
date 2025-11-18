@@ -28,7 +28,7 @@
 				<h1 class="text-xl font-semibold">INT2211</h1>
 			</div>
 		</header>
-		<main class="flex flex-1 flex-col">
+		<main class="flex flex-1 flex-col px-5">
 			{@render children()}
 		</main>
 	</Sidebar.Inset>
