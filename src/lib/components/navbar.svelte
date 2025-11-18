@@ -10,6 +10,7 @@
 			<a href="/" class="text-xl font-bold">INT2211</a>
 			<div class="hidden items-center gap-6 md:flex">
 				<a href="/" class="hover:text-primary text-sm transition-colors">Customers</a>
+				<a href="/orders" class="hover:text-primary text-sm transition-colors">Orders</a>
 			</div>
 		</div>
 
