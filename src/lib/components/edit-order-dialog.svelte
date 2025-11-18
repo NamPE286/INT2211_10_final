@@ -5,6 +5,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
+	import { toast } from 'svelte-sonner';
 	import type { OrderWithCustomer } from '../../routes/orders/[orderNumber]/+page.server';
 
 	interface Props {
@@ -74,13 +75,18 @@
 			const result = await response.json();
 
 			if (response.ok) {
+				toast.success('Order updated successfully');
 				open = false;
 				if (onSuccess) onSuccess();
 			} else {
-				error = result.error || 'Failed to update order';
+				const errorMsg = result.error || 'Failed to update order';
+				error = errorMsg;
+				toast.error(errorMsg);
 			}
 		} catch (err) {
-			error = 'Failed to update order';
+			const errorMsg = 'Failed to update order';
+			error = errorMsg;
+			toast.error(errorMsg);
 			console.error(err);
 		} finally {
 			loading = false;

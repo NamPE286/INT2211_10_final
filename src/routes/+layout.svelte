@@ -5,6 +5,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { themeStore } from '$lib/stores/theme.svelte';
 	import Navbar from '$lib/components/navbar.svelte';
+	import { Toaster } from '$lib/components/ui/sonner';
 
 	let { children } = $props();
 
@@ -19,3 +20,4 @@
 
 <Navbar />
 {@render children()}
+<Toaster />

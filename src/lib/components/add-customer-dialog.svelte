@@ -4,6 +4,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Plus } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 
 	interface Props {
 		open?: boolean;
@@ -70,14 +71,19 @@
 			const result = await response.json();
 
 			if (response.ok) {
+				toast.success('Customer created successfully');
 				resetForm();
 				open = false;
 				if (onSuccess) onSuccess();
 			} else {
-				error = result.error || 'Failed to create customer';
+				const errorMsg = result.error || 'Failed to create customer';
+				error = errorMsg;
+				toast.error(errorMsg);
 			}
 		} catch (err) {
-			error = 'Failed to create customer';
+			const errorMsg = 'Failed to create customer';
+			error = errorMsg;
+			toast.error(errorMsg);
 			console.error(err);
 		} finally {
 			loading = false;

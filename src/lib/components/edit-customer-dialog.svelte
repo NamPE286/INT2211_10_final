@@ -3,6 +3,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { toast } from 'svelte-sonner';
 	import type { Customer } from '$lib/types/customer';
 
 	interface Props {
@@ -71,13 +72,18 @@
 			const result = await response.json();
 
 			if (response.ok) {
+				toast.success('Customer updated successfully');
 				open = false;
 				if (onSuccess) onSuccess();
 			} else {
-				error = result.error || 'Failed to update customer';
+				const errorMsg = result.error || 'Failed to update customer';
+				error = errorMsg;
+				toast.error(errorMsg);
 			}
 		} catch (err) {
-			error = 'Failed to update customer';
+			const errorMsg = 'Failed to update customer';
+			error = errorMsg;
+			toast.error(errorMsg);
 			console.error(err);
 		} finally {
 			loading = false;

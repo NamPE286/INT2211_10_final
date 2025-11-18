@@ -8,6 +8,7 @@
 	import EditOrderDialog from '$lib/components/edit-order-dialog.svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { Pencil, Trash2 } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 
 	let { data }: { data: PageData } = $props();
 	let order = $state(data.order);
@@ -40,9 +41,13 @@
 			});
 
 			if (response.ok) {
+				toast.success('Order deleted successfully');
 				goto('/');
+			} else {
+				toast.error('Failed to delete order');
 			}
 		} catch (err) {
+			toast.error('Failed to delete order');
 			console.error(err);
 		} finally {
 			deleting = false;

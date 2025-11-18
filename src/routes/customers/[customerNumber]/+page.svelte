@@ -8,6 +8,7 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Pencil, Trash2 } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
 
 	let { data }: { data: PageData } = $props();
 	let customer = $state(data.customer);
@@ -32,9 +33,13 @@
 			});
 
 			if (response.ok) {
+				toast.success('Customer deleted successfully');
 				goto('/');
+			} else {
+				toast.error('Failed to delete customer');
 			}
 		} catch (err) {
+			toast.error('Failed to delete customer');
 			console.error(err);
 		} finally {
 			deleting = false;
