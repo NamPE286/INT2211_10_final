@@ -28,6 +28,7 @@
 	import type { Customer } from '$lib/types/customer.js';
 	import { toast } from 'svelte-sonner';
 	import Search from '@lucide/svelte/icons/search';
+	import AddProductDialog from './add-product-dialog.svelte';
 
 	let data = $state<Product[]>([]);
 	let loading = $state(true);
@@ -365,23 +366,26 @@
 				Delete ({selectedCount})
 			</Button>
 		{/if}
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger>
-				{#snippet child({ props })}
-					<Button {...props} variant="outline" class="ml-auto">Columns</Button>
-				{/snippet}
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Content align="end" class="border-border">
-				{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column.id)}
-					<DropdownMenu.CheckboxItem
-						class="capitalize"
-						bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
-					>
-						{column.id}
-					</DropdownMenu.CheckboxItem>
-				{/each}
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
+		<div class="ml-auto flex gap-2">
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger>
+					{#snippet child({ props })}
+						<Button {...props} variant="outline">Columns</Button>
+					{/snippet}
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content align="end" class="border-border">
+					{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column.id)}
+						<DropdownMenu.CheckboxItem
+							class="capitalize"
+							bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
+						>
+							{column.id}
+						</DropdownMenu.CheckboxItem>
+					{/each}
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
+			<AddProductDialog onSuccess={fetchProducts} />
+		</div>
 	</div>
 	{#if error}
 		<p class="text-red-500">{error}</p>

@@ -46,3 +46,52 @@ export const GET: RequestHandler = async ({ url }) => {
 		return json({ error: 'Failed to fetch products' }, { status: 500 });
 	}
 };
+
+export const POST: RequestHandler = async ({ request }) => {
+	try {
+		const data = await request.json();
+		
+		const {
+			productCode,
+			productName,
+			productLine,
+			productScale,
+			productVendor,
+			productDescription,
+			quantityInStock,
+			buyPrice,
+			MSRP
+		} = data;
+
+		if (!productCode || !productName || !productLine || !productScale || !productVendor || !productDescription) {
+			return json({ error: 'Missing required fields' }, { status: 400 });
+		}
+
+		const query = `
+			INSERT INTO products (
+				productCode, productName, productLine, productScale, productVendor,
+				productDescription, quantityInStock, buyPrice, MSRP
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		`;
+
+		const [result] = await connection.query(query, [
+			productCode,
+			productName,
+			productLine,
+			productScale,
+			productVendor,
+			productDescription,
+			quantityInStock || 0,
+			buyPrice || '0.00',
+			MSRP || '0.00'
+		]);
+
+		return json({ data: { productCode, ...data }, message: 'Product created successfully' }, { status: 201 });
+	} catch (err: any) {
+		console.error(err);
+		if (err.code === 'ER_DUP_ENTRY') {
+			return json({ error: 'Product code already exists' }, { status: 409 });
+		}
+		return json({ error: 'Failed to create product' }, { status: 500 });
+	}
+};
