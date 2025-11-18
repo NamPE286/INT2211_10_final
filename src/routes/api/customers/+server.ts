@@ -34,8 +34,6 @@ export const GET: RequestHandler = async ({ url }) => {
 
         const [rows] = await connection.query(query);
 
-        console.log(query, rows)
-
         return json({ data: rows });
     } catch (err) {
         console.error(err);

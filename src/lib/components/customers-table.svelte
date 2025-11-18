@@ -369,7 +369,7 @@
 </div>
 
 <AlertDialog.Root bind:open={showDeleteDialog}>
-	<AlertDialog.Content>
+	<AlertDialog.Content class="border-border">
 		<AlertDialog.Header>
 			<AlertDialog.Title>Are you sure?</AlertDialog.Title>
 			<AlertDialog.Description>
