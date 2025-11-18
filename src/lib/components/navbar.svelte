@@ -2,7 +2,6 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { themeStore } from '$lib/stores/theme.svelte';
 	import { Moon, Sun } from 'lucide-svelte';
-	import EditDbConfigDialog from './edit-db-config-dialog.svelte';
 </script>
 
 <nav>
@@ -15,7 +14,6 @@
 		</div>
 		
 		<div class="flex items-center gap-4">
-			<EditDbConfigDialog />
 			<Button
 				variant="ghost"
 				size="icon"
