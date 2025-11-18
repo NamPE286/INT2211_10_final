@@ -176,7 +176,10 @@
 						</Table.Header>
 						<Table.Body>
 							{#each recentOrders as order}
-								<Table.Row>
+								<Table.Row
+									class="cursor-pointer hover:bg-muted/50"
+									onclick={() => goto(`/orders/${order.orderNumber}`)}
+								>
 									<Table.Cell class="font-medium">{order.orderNumber}</Table.Cell>
 									<Table.Cell>
 										{new Date(order.orderDate).toLocaleDateString()}
